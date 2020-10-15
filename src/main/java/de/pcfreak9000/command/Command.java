@@ -13,11 +13,13 @@ public class Command {
     
     private boolean helpshowname;
     
-    public Command(String command) {
+    private ICommand icommand;
+    
+    Command(String command) {
         this(command, true);
     }
     
-    public Command(String command, boolean helpshowname) {
+    Command(String command, boolean helpshowname) {
         if (command.contains("\"")) {
             throw new IllegalArgumentException("'\"' in command");
         }
@@ -29,14 +31,25 @@ public class Command {
         subcommands = new HashMap<String, Command>();
     }
     
-    public void register(Command command) {
+    public Command createSubCommand(String name) {
+        return createSubCommand(name, null);
+    }
+    
+    public Command createSubCommand(String name, ICommand c) {
+        Command command = new Command(name);
+        command.icommand = c;
+        register(command);
+        return command;
+    }
+    
+    private void register(Command command) {
         if (command == null) {
             throw new NullPointerException("command == null");
         }
         subcommands.put(command.getName(), command);
     }
     
-    public void unregister(Command cmd) {
+    public void removeCommand(Command cmd) {
         if (command == null) {
             throw new NullPointerException("command == null");
         }
@@ -51,7 +64,7 @@ public class Command {
         if (args.size() > 0) {
             Argument arg = args.get(0);
             if (arg.isDirect() && arg.getArgument().equals("help")) {
-                help0();
+                help();
                 return;
             }
             Command c = subcommands.get(arg.getArgument());
@@ -63,39 +76,45 @@ public class Command {
         execute(args);
     }
     
-    protected void execute(List<Argument> args) {
-        if (args.size() > 0) {
-            System.out.println("Unknown command: " + args.get(0).getArgument());
-            Collection<String> possible = subcommands.keySet().stream()
-                    .filter((s) -> s.startsWith(args.get(0).getArgument())).collect(Collectors.toList());
-            if (!possible.isEmpty()) {
-                System.out.println("Maybe you meant to use one of the following: ");
-                System.out.println(possible.stream().collect(Collectors.joining(", ")));
+    private void execute(List<Argument> args) {
+        if (icommand == null) {
+            if (args.size() > 0) {
+                System.out.println("Unknown command: " + args.get(0).getArgument());
+                Collection<String> possible = subcommands.keySet().stream()
+                        .filter((s) -> s.startsWith(args.get(0).getArgument())).collect(Collectors.toList());
+                if (!possible.isEmpty()) {
+                    System.out.println("Maybe you meant to use one of the following: ");
+                    System.out.println(possible.stream().collect(Collectors.joining(", ")));
+                }
+                System.out.println();
+                System.out.println(
+                        "Use 'help' for general help. Use '<command> help' to get help for a (sub)command. Commands are cAsE sensitive.");
+            } else {
+                help();
+                //System.out.println("Unknown command.");
             }
-            System.out.println();
-            System.out.println("Use 'help' for general help. Use '<command> help' to get help for a (sub)command. Commands are cAsE sensitive.");
         } else {
-            help0();
-            //System.out.println("Unknown command.");
+            if (icommand.checkArguments(args)) {
+                icommand.execute(args);
+            }
         }
-        //help0();
     }
     
-    private void help0() {
+    private void help() {
         System.out.println("======= Help" + (helpshowname ? (" for '" + command + "' =======") : " ======="));
         if (!subcommands.isEmpty()) {
             System.out.println("Available (sub)commands:");
             System.out.println(subcommands.keySet().stream().collect(Collectors.joining(", ")));
             System.out.println();
-            System.out.println("Use 'help' for general help. Use '<command> help' to get help for a (sub)command. Commands are cAsE sensitive.");
+            System.out.println(
+                    "Use 'help' for general help. Use '<command> help' to get help for a (sub)command. Commands are cAsE sensitive.");
         }
-        help();
-    }
-    
-    protected void help() {
-        if (subcommands.isEmpty()) {
-            System.out.println("There is no help.");
+        if (icommand != null) {
+            icommand.help();
         }
     }
     
+    public ICommand getICommand() {
+        return icommand;
+    }
 }

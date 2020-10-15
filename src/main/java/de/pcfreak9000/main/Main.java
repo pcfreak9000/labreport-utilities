@@ -10,6 +10,7 @@ import org.matheclipse.core.eval.ExprEvaluator;
 
 import de.pcfreak9000.command.Argument;
 import de.pcfreak9000.command.Command;
+import de.pcfreak9000.command.ICommand;
 import de.pcfreak9000.command.Parser;
 import de.pcfreak9000.main.ErrorPropagation.PropagationType;
 
@@ -31,7 +32,7 @@ public class Main {
     private static Tablets data = new Tablets();
     
     public static void main(String[] args) {
-        evaluator();
+        evaluator();//Initializing the evaluator takes a second or two
         boolean consoleInput = true;
         InputStream in = System.in;
         if (args.length > 0) {
@@ -48,18 +49,23 @@ public class Main {
             System.out.println("Reading instructions from the file \"" + args[0] + "\"");
         }
         Parser parser = new Parser();
-        Command exit = new Command("exit") {
+        parser.createCommand("exit", new ICommand() {
             @Override
-            protected void execute(List<Argument> args) {
+            public void execute(List<Argument> args) {
                 System.exit(0);
             }
             
             @Override
-            protected void help() {
+            public void help() {
                 System.out.println("Exits the program.");
             }
-        };
-        parser.getBaseCommand().register(exit);
+        });
+        //        parser.createCommand(">", new ICommand() {
+        //            @Override
+        //            public void execute(List<Argument> args) {
+        //                System.out.println(evaluator().eval(args.get(0).getArgument()));
+        //            }
+        //        });
         registerCommands(parser);
         try (Scanner scan = new Scanner(in)) {
             while (scan.hasNextLine()) {
@@ -75,12 +81,12 @@ public class Main {
     //TODO this sucks. make it better.
     
     private static void registerCommands(Parser p) {
-        Command tablets = new Command("tablets");
-        Command t_create = new Command("create");
-        tablets.register(t_create);
-        Command t_c_data = new Command("data") {
+        
+        Command tablets = p.createCommand("tablets");
+        Command t_create = tablets.createSubCommand("create");
+        t_create.createSubCommand("data", new ICommand() {
             @Override
-            protected void execute(List<Argument> args) {
+            public void execute(List<Argument> args) {
                 if (args.size() != 1) {
                     System.out.println("Cannot execute: Malformed arguments");
                 } else if (data.exists(args.get(0).getArgument())) {
@@ -90,11 +96,10 @@ public class Main {
                     System.out.println("Created the data tablet '" + args.get(0).getArgument() + "'.");
                 }
             }
-        };
-        t_create.register(t_c_data);
-        Command t_c_func = new Command("func") {
+        });
+        t_create.createSubCommand("func", new ICommand() {
             @Override
-            protected void execute(List<Argument> args) {
+            public void execute(List<Argument> args) {
                 if (args.size() != 1) {
                     System.out.println("Cannot execute: Malformed arguments");
                 } else if (data.exists(args.get(0).getArgument())) {
@@ -104,10 +109,9 @@ public class Main {
                     System.out.println("Created the function tablet '" + args.get(0).getArgument() + "'.");
                 }
             }
-        };
-        t_create.register(t_c_func);
-        Command t_delete = new Command("delete") {
-            protected void execute(List<Argument> args) {
+        });
+        tablets.createSubCommand("delete", new ICommand() {
+            public void execute(List<Argument> args) {
                 if (args.size() != 1) {
                     System.out.println("Cannot execute: Malformed arguments");
                 } else if (!data.exists(args.get(0).getArgument())) {
@@ -116,12 +120,11 @@ public class Main {
                     data.deleteTablet(args.get(0).getArgument());
                     System.out.println("Deleted the tablet '" + args.get(0).getArgument() + "'.");
                 }
-            };
-        };
-        tablets.register(t_delete);
-        Command t_setentry = new Command("setentry") {
+            }
+        });
+        tablets.createSubCommand("setentry", new ICommand() {
             @Override
-            protected void execute(List<Argument> args) {
+            public void execute(List<Argument> args) {
                 if (args.size() == 0) {
                     System.out.println("Cannot execute: Malformed arguments");
                 } else if (!data.exists(args.get(0).getArgument())) {
@@ -160,11 +163,10 @@ public class Main {
                     }
                 }
             }
-        };
-        tablets.register(t_setentry);
-        Command propagate = new Command("prop") {
+        });
+        p.createCommand("prop", new ICommand() {
             @Override
-            protected void execute(List<Argument> args) {
+            public void execute(List<Argument> args) {
                 if (args.size() < 3) {
                     System.out.println("Malformed arguments");
                 } else {
@@ -196,10 +198,7 @@ public class Main {
                     }
                 }
             }
-        };
-        
-        p.getBaseCommand().register(propagate);
-        p.getBaseCommand().register(tablets);
+        });
     }
     
     //        Parser p = new Parser();

@@ -3,7 +3,6 @@ package de.pcfreak9000.command;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +14,10 @@ public class Parser {
     private Command baseCommand = new Command(">>", false);
     
     private List<String> history = new ArrayList<>();
+    private Exception ex;
     
     public void parseAndResolve(String in) {
+        this.ex = null;//Reset the exception
         List<Argument> parts = new ArrayList<>();
         char[] chars = in.toCharArray();
         StringBuilder builder = new StringBuilder();
@@ -90,7 +91,13 @@ public class Parser {
                 System.out.println("Malformed history command");
             }
         } else {
-            baseCommand.call(parts);
+            try {
+                baseCommand.call(parts);
+            } catch (Exception e) {
+                this.ex = e;
+                System.setOut(ORIGINAL_SYSOUT);
+                System.out.println("Error while executing a command: " + e.toString());
+            }
             history.add(in);
         }
         System.setOut(ORIGINAL_SYSOUT);
@@ -125,7 +132,28 @@ public class Parser {
         System.setOut(target);
     }
     
-    public Command getBaseCommand() {
+    /**
+     * 
+     * @return null if there wasn't an exception or the exception if there was one
+     */
+    public Exception checkCommandException() {
+        return this.ex;
+    }
+    
+    public Command createCommand(String name) {
+        return createCommand(name, null);
+    }
+    
+    public Command createCommand(String name, ICommand com) {
+        return getBaseCommand().createSubCommand(name, com);
+    }
+    
+    public void removeCommand(Command c) {
+        getBaseCommand().removeCommand(c);
+    }
+    
+    private Command getBaseCommand() {
         return baseCommand;
     }
+    
 }
