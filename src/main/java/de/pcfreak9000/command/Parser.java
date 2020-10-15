@@ -140,6 +140,11 @@ public class Parser {
         return this.ex;
     }
     
+    //TODO better alias system, this is weird?
+    public void createAlias(String command, String alias) {
+        getBaseCommand().createAlias(command, alias);
+    }
+    
     public Command createCommand(String name) {
         return createCommand(name, null);
     }

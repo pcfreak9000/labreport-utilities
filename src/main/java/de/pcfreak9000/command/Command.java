@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 public class Command {
     
     private Map<String, Command> subcommands;
+    private Map<String, String> aliases;
+    
     private String command;
     
     private boolean helpshowname;
@@ -28,7 +30,12 @@ public class Command {
         }
         this.helpshowname = helpshowname;
         this.command = command;
-        subcommands = new HashMap<String, Command>();
+        this.subcommands = new HashMap<String, Command>();
+        this.aliases = new HashMap<>();
+    }
+    
+    public void createAlias(String command, String alias) {
+        this.aliases.put(alias, command);
     }
     
     public Command createSubCommand(String name) {
@@ -71,6 +78,15 @@ public class Command {
             if (c != null) {
                 c.call(args.subList(1, args.size()));
                 return;
+            }
+            //Aliases might be involved
+            String command = aliases.get(arg.getArgument());
+            if (command != null) {
+                c = subcommands.get(command);
+                if (c != null) {
+                    c.call(args.subList(1, args.size()));
+                    return;
+                }
             }
         }
         execute(args);

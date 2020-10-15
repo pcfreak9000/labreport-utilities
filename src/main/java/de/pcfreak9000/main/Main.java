@@ -29,7 +29,7 @@ public class Main {
         return EXPRESSION_EVALUATOR;
     }
     
-    private static Tablets data = new Tablets();
+    public static final Tablets data = new Tablets();
     
     public static void main(String[] args) {
         evaluator();//Initializing the evaluator takes a second or two
@@ -84,6 +84,7 @@ public class Main {
         
         Command tablets = p.createCommand("tablets");
         Command t_create = tablets.createSubCommand("create");
+        tablets.createAlias("create", "c");
         t_create.createSubCommand("data", new ICommand() {
             @Override
             public void execute(List<Argument> args) {
@@ -122,83 +123,8 @@ public class Main {
                 }
             }
         });
-        tablets.createSubCommand("setentry", new ICommand() {
-            @Override
-            public void execute(List<Argument> args) {
-                if (args.size() == 0) {
-                    System.out.println("Cannot execute: Malformed arguments");
-                } else if (!data.exists(args.get(0).getArgument())) {
-                    System.out.println("Cannot set entry: No such tablet");
-                } else {
-                    Tablet ta = data.getTablet(args.get(0).getArgument());
-                    if (ta instanceof DataTablet) {
-                        if (args.size() < 2 || args.size() > 3) {
-                            System.out.println("Cannot execute: Malformed arguments");
-                            return;
-                        }
-                        DataTablet tab = (DataTablet) ta;
-                        String v = args.get(1).getArgument();
-                        String err = args.size() == 3 ? args.get(2).getArgument() : "0";
-                        if (!v.matches(SUPPORTED_NUMBER_FORMAT_REGEX) || !err.matches(SUPPORTED_NUMBER_FORMAT_REGEX)) {
-                            System.out.println("Cannot set entry: Malformed number format");
-                        } else {
-                            tab.setValues(v.replace(',', '.'));
-                            tab.setErrors(err.replace(',', '.'));
-                            System.out.println("Set the value of tablet '" + args.get(0).getArgument() + "' to '" + v
-                                    + "' and the error to '" + err + "'.");
-                        }
-                    } else if (ta instanceof FunctionTablet) {
-                        FunctionTablet form = (FunctionTablet) ta;
-                        if (args.size() < 3) {
-                            System.out.println("Cannot execute: Malformed arguments");
-                            return;
-                        } else {
-                            form.setFunction(args.get(1).getArgument());
-                            if (args.size() > 2) {
-                                String[] array = args.subList(2, args.size()).stream().map(Argument::getArgument)
-                                        .toArray(String[]::new);
-                                form.setArgs(array);
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        p.createCommand("prop", new ICommand() {
-            @Override
-            public void execute(List<Argument> args) {
-                if (args.size() < 3) {
-                    System.out.println("Malformed arguments");
-                } else {
-                    String a0 = args.get(0).getArgument();//function
-                    String a1 = args.get(1).getArgument();//target
-                    if (!data.exists(a0) || !data.exists(a1)) {
-                        System.out.println("Wroooong. Tchina!");
-                    } else {
-                        Tablet ta = data.getTablet(a0);
-                        if (ta instanceof FunctionTablet) {
-                            FunctionTablet funct = (FunctionTablet) ta;
-                            String[] fargs = funct.getArgs();
-                            if (args.size() - 2 != fargs.length) {
-                                System.out.println("Number of function arguments and tablets not matching");
-                            } else {
-                                ErrorPropagation eprop = funct.createErrorPropagation();
-                                for (int i = 0; i < fargs.length; i++) {
-                                    DataTablet dt = (DataTablet) data.getTablet(args.get(i + 2).getArgument());//Just crashes if wrong arg lol
-                                    evaluator().defineVariable(fargs[i], evaluator().eval(dt.getValue()));
-                                    evaluator().defineVariable("D" + fargs[i], evaluator().eval(dt.getError()));
-                                }
-                                System.out.println("V: " + evaluator().eval("N(" + funct.getFunction() + ")"));
-                                System.out.println("E: " + evaluator()
-                                        .eval("N(" + eprop.getErrorPropFunction(PropagationType.Gaussian) + ")"));
-                            }
-                        } else {
-                            System.out.println("Oi cunt");
-                        }
-                    }
-                }
-            }
-        });
+        tablets.createSubCommand("set", new SetCommandImpl());
+        p.createCommand("prop", new PropagateCommandImpl());
     }
     
     //        Parser p = new Parser();

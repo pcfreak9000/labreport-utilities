@@ -2,14 +2,19 @@ package de.pcfreak9000.main;
 
 public class DataTablet implements Tablet {
     
+    public static boolean isStatistical(DataTablet... dataTablets) {
+        for (int i = 0; i < dataTablets.length; i++) {
+            if (dataTablets[i].isStatistical()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     private String[] values;
     private String[] errors;
     
-    private boolean sameMeasurement;
-    
-    public DataTablet() {
-        //this.sameMeasurement = sameMeasurement;
-    }
+    private boolean statistical;
     
     public void setValues(String... values) {
         this.values = values;
@@ -19,14 +24,72 @@ public class DataTablet implements Tablet {
         this.errors = errors;
     }
     
+    public void setStatistical(boolean b) {
+        this.statistical = b;
+    }
+    
     public void clear() {
         this.values = null;
         this.errors = null;
     }
     
-    //TODO temporary
-    public String getError() {
-        return errors[0];
+    public boolean isStatistical() {
+        return statistical && (errors == null || errors.length > 1);
+    }
+    
+    public int getLength() {
+        return isStatistical() ? 1 : (values == null ? 0 : values.length);
+    }
+    
+    private String createStandardDeviationEvalString() {
+        StringBuilder b = new StringBuilder();
+        b.append("1/sqrt(" + errors.length + ") * ");
+        b.append("StandardDeviation({");
+        for (int i = 0; i < errors.length; i++) {
+            b.append(errors[i]);
+            if (i < errors.length - 1) {
+                b.append(", ");
+            }
+        }
+        b.append("})");
+        return b.toString();
+    }
+    
+    private String createMeanEvalString() {
+        StringBuilder b = new StringBuilder();
+        b.append("Mean({");
+        for (int i = 0; i < values.length; i++) {
+            b.append(values[i]);
+            if (i < values.length - 1) {
+                b.append(", ");
+            }
+        }
+        b.append("})");
+        return b.toString();
+    }
+    
+    public String getError(int index) {
+        if (errors != null) {
+            if (isStatistical()) {
+                return Main.evaluator().eval(createStandardDeviationEvalString()).toString();
+            } else {
+                return errors[index];
+            }
+        } else {
+            return null;
+        }
+    }
+    
+    public String getValue(int index) {
+        if (values != null) {
+            if (isStatistical()) {
+                return Main.evaluator().eval(createMeanEvalString()).toString();
+            } else {
+                return values[index];
+            }
+        } else {
+            return null;
+        }
     }
     
     public String getValue() {
