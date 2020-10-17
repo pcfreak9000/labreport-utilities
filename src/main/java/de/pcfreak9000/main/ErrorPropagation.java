@@ -5,7 +5,11 @@ import org.matheclipse.core.interfaces.IExpr;
 public class ErrorPropagation {
     
     public static enum PropagationType {
-        Linear, Gaussian
+        Linear, Gaussian;
+        
+        public static PropagationType get(boolean stat) {
+            return stat ? Gaussian : Linear;
+        }
     }
     
     private String function;

@@ -1,14 +1,10 @@
-tablets create func f
-tablets c data x
-tablets c data t
-tablets c data m
-tablets c data g
-tablets c data l
-tablets c data result
-tablets set f "k = (x^2*t-m*g*l)/(x^2*t+m*g*l)" x t m g l
-tablets set x 4,283373087610467 0
-tablets set t 0,217 0,007
-tablets set m 0,536 0,001
-tablets set g 9,81 0,01
-tablets set l 0,636 0,01
-prop f result x t m g l
+tablets create func kappa
+t c data pa
+t c data pb
+t c data pc
+t c data result
+t sete kappa "k = (a-b)/(a-c)" a b c
+t sete pa 1000 10
+t sete pb 960 10
+t sete pc 975 10
+prop kappa result a=pa b=pb c=pc

@@ -10,7 +10,7 @@ public class Arguments {
         Map<String, String> map = new HashMap<>();
         for (Argument a : args) {
             String s = a.getArgument();
-            String[] parts = s.split("[^\\\\]=");
+            String[] parts = s.split("=");
             if (parts.length != 2) {
                 return null;
                 //throw new IllegalArgumentException("Malformed arguments");

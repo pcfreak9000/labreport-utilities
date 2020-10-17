@@ -5,7 +5,7 @@ import java.util.List;
 import de.pcfreak9000.command.Argument;
 import de.pcfreak9000.command.ICommand;
 
-public class SetCommandImpl implements ICommand {
+public class SetEntryCommandImpl implements ICommand {
     
     @Override
     public boolean checkArguments(List<Argument> args) {
@@ -28,29 +28,31 @@ public class SetCommandImpl implements ICommand {
                 return;
             }
             DataTablet tab = (DataTablet) ta;
-            String v = args.get(1).getArgument();
-            String err = args.size() == 3 ? args.get(2).getArgument() : "0";
-            if (!v.matches(Main.SUPPORTED_NUMBER_FORMAT_REGEX) || !err.matches(Main.SUPPORTED_NUMBER_FORMAT_REGEX)) {
-                System.out.println("Cannot set entry: Malformed number format");
-            } else {
-                tab.setValues(v.replace(',', '.'));
-                tab.setErrors(err.replace(',', '.'));
-                System.out.println("Set the value of tablet '" + args.get(0).getArgument() + "' to '" + v
-                        + "' and the error to '" + err + "'.");
-            }
+            setDataTablet(tab, args);
         } else if (ta instanceof FunctionTablet) {
-            FunctionTablet form = (FunctionTablet) ta;
             if (args.size() < 3) {
                 System.out.println("Cannot execute: Malformed arguments");
                 return;
-            } else {
-                form.setFunction(args.get(1).getArgument());
-                if (args.size() > 2) {
-                    String[] array = args.subList(2, args.size()).stream().map(Argument::getArgument)
-                            .toArray(String[]::new);
-                    form.setArgs(array);
-                }
             }
+            FunctionTablet form = (FunctionTablet) ta;
+            setFunctionTablet(form, args);
+        }
+    }
+    
+    private void setDataTablet(DataTablet tab, List<Argument> args) {
+        String v = args.get(1).getArgument();
+        String err = args.size() == 3 ? args.get(2).getArgument() : "0";
+        tab.setValues(v);
+        tab.setErrors(err);
+        System.out.println("Set the value of tablet '" + args.get(0).getArgument() + "' to '" + v
+                + "' and the error to '" + err + "'.");
+    }
+    
+    private void setFunctionTablet(FunctionTablet form, List<Argument> args) {
+        form.setFunction(args.get(1).getArgument());
+        if (args.size() > 2) {
+            String[] array = args.subList(2, args.size()).stream().map(Argument::getArgument).toArray(String[]::new);
+            form.setArgs(array);
         }
     }
 }

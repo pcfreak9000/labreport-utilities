@@ -78,11 +78,9 @@ public class Main {
         }
     }
     
-    //TODO this sucks. make it better.
-    
     private static void registerCommands(Parser p) {
-        
         Command tablets = p.createCommand("tablets");
+        p.createAlias("tablets", "t");
         Command t_create = tablets.createSubCommand("create");
         tablets.createAlias("create", "c");
         t_create.createSubCommand("data", new ICommand() {
@@ -123,7 +121,8 @@ public class Main {
                 }
             }
         });
-        tablets.createSubCommand("set", new SetCommandImpl());
+        tablets.createSubCommand("sete", new SetEntryCommandImpl());
+        tablets.createSubCommand("setf", new SetFileCommandImpl());
         p.createCommand("prop", new PropagateCommandImpl());
     }
     

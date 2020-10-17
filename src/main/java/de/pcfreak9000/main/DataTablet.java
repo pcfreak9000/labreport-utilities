@@ -43,11 +43,11 @@ public class DataTablet implements Tablet {
     
     private String createStandardDeviationEvalString() {
         StringBuilder b = new StringBuilder();
-        b.append("1/sqrt(" + errors.length + ") * ");
+        b.append("1/sqrt(" + values.length + ") * ");
         b.append("StandardDeviation({");
-        for (int i = 0; i < errors.length; i++) {
-            b.append(errors[i]);
-            if (i < errors.length - 1) {
+        for (int i = 0; i < values.length; i++) {
+            b.append(values[i]);
+            if (i < values.length - 1) {
                 b.append(", ");
             }
         }
