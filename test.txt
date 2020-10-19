@@ -4,7 +4,8 @@ t c data pb
 t c data pc
 t c data result
 t sete kappa "k = (a-b)/(a-c)" a b c
-t sete pa 1000 10
-t sete pb 960 10
-t sete pc 975 10
+t setf v8_stuff.csv -skipl=2 -skipr=2 -countl=7 -countr=2 pa
+t setf v8_stuff.csv -skipl=2 -skipr=4 -countl=7 -countr=2 pb
+t setf v8_stuff.csv -skipl=2 -skipr=6 -countl=7 -countr=2 pc
 prop kappa result a=pa b=pb c=pc
+printerr

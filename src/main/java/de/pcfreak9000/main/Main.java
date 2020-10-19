@@ -124,6 +124,12 @@ public class Main {
         tablets.createSubCommand("sete", new SetEntryCommandImpl());
         tablets.createSubCommand("setf", new SetFileCommandImpl());
         p.createCommand("prop", new PropagateCommandImpl());
+        p.createCommand("printerr", new ICommand() {
+            @Override
+            public void execute(List<Argument> args) {
+                p.checkCommandException().printStackTrace();
+            }
+        });
     }
     
     //        Parser p = new Parser();

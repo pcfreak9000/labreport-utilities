@@ -2,19 +2,14 @@ package de.pcfreak9000.main;
 
 public class DataTablet implements Tablet {
     
-    public static boolean isStatistical(DataTablet... dataTablets) {
-        for (int i = 0; i < dataTablets.length; i++) {
-            if (dataTablets[i].isStatistical()) {
-                return true;
-            }
-        }
-        return false;
+    public static enum DataType{
+        RAW_STATISTICAL, RAW_MULTI, RESULT_STATISTICAL, RESULT_MULTI
     }
     
     private String[] values;
     private String[] errors;
     
-    private boolean statistical;
+    private DataType type;
     
     public void setValues(String... values) {
         this.values = values;
@@ -24,8 +19,8 @@ public class DataTablet implements Tablet {
         this.errors = errors;
     }
     
-    public void setStatistical(boolean b) {
-        this.statistical = b;
+    public void setType(DataType type) {
+        this.type = type;
     }
     
     public void clear() {
@@ -34,7 +29,7 @@ public class DataTablet implements Tablet {
     }
     
     public boolean isStatistical() {
-        return statistical && (errors == null || errors.length > 1);
+        return this.type==DataType.RAW_STATISTICAL && (errors == null || errors.length > 1);
     }
     
     public int getLength() {
@@ -92,8 +87,14 @@ public class DataTablet implements Tablet {
         }
     }
     
-    public String getValue() {
-        return values[0];
+    public String stringRepresentation() {
+        String s = "Value  |  Error\n";
+        if (values != null) {
+            for (int i = 0; i < values.length; i++) {
+                s += values[i] + "  |  " + errors[i] + "\n";
+            }
+        }
+        return s;
     }
     
     //Read files

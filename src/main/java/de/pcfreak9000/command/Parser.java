@@ -17,7 +17,6 @@ public class Parser {
     private Exception ex;
     
     public void parseAndResolve(String in) {
-        this.ex = null;//Reset the exception
         List<Argument> parts = new ArrayList<>();
         char[] chars = in.toCharArray();
         StringBuilder builder = new StringBuilder();
@@ -91,12 +90,17 @@ public class Parser {
                 System.out.println("Malformed history command");
             }
         } else {
+            boolean problem = false;
             try {
                 baseCommand.call(parts);
             } catch (Exception e) {
                 this.ex = e;
+                problem = true;
                 System.setOut(ORIGINAL_SYSOUT);
                 System.out.println("Error while executing a command: " + e.toString());
+            }
+            if(!problem) {
+                this.ex = null;//Reset the exception
             }
             history.add(in);
         }

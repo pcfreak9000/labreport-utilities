@@ -52,6 +52,10 @@ public class ErrorPropagation {
         return Main.evaluator().eval(b.toString()).toString();
     }
     
+    public String getHeader() {
+        return fheader;
+    }
+    
     private String getHeader(String function) {
         String f = function.split("=")[0].trim();
         if (f.contains("(")) {
