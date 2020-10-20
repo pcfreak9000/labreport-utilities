@@ -36,7 +36,7 @@ public class ErrorPropagation {
         case Gaussian:
             b.append("sqrt(");
             for (int i = 0; i < this.vars.length; i++) {
-                b.append("(" + partialDerivatives[i] + " * \"D" + vars[i] + "\")^2"
+                b.append("(" + partialDerivatives[i] + ")^2 * (\"D" + vars[i] + "\")^2"
                         + (i == vars.length - 1 ? ")" : " + "));
             }
             break;
@@ -57,7 +57,7 @@ public class ErrorPropagation {
     }
     
     private String getHeader(String function) {
-        String f = function.split("=")[0].trim();
+        String f = function.split("=")[0].trim();//FIXME headerless functions
         if (f.contains("(")) {
             f = f.split("(")[0].trim();
         }

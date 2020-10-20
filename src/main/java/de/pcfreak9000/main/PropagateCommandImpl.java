@@ -37,7 +37,7 @@ public class PropagateCommandImpl implements ICommand {
                             return;
                         }
                         ErrorPropagation eprop = funct.createErrorPropagation();
-                        PropagationType propagationtype = PropagationType.Linear;
+                        PropagationType propagationtype = PropagationType.Gaussian;
                         int elementCount = -1;
                         List<String> nonstatargs = new ArrayList<>();
                         for (int i = 0; i < fargs.length; i++) {
@@ -75,14 +75,15 @@ public class PropagateCommandImpl implements ICommand {
                         Main.evaluator().clearVariables();
                         String tmp = eprop.getErrorPropFunction(propagationtype);
                         System.out.println(tmp);
-                        //                        TeXUtilities tex = new TeXUtilities(Main.evaluator().getEvalEngine(), true);
-                        //                        StringWriter wr = new StringWriter();
-                        //                        tex.toTeX(tmp, wr);
-                        //                        String texString = wr.toString();
-                        //                        for (int i = 0; i < fargs.length; i++) {
-                        //                            texString = texString.replace("d" + fargs[i], "\\Delta " + fargs[i]);
-                        //                        }
-                        //                        System.out.println(texString.replace("\\cdot", "").replace("{t}", "{\\omega}").replace("{x}", "{\\Omega}"));
+//                        TeXUtilities tex = new TeXUtilities(Main.evaluator().getEvalEngine(), true);
+//                        StringWriter wr = new StringWriter();
+//                        tex.toTeX(tmp, wr);
+//                        String texString = wr.toString();
+//                        for (int i = 0; i < fargs.length; i++) {
+//                            texString = texString.replace("d" + fargs[i], "\\Delta " + fargs[i]);
+//                        }
+//                        System.out.println(texString.replace("\\cdot", "").replace("{t}", "{\\omega}").replace("{x}",
+//                                "{\\Omega}"));
                     }
                 } else {
                     System.out.println("Oi cunt");

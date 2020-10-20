@@ -79,10 +79,10 @@ public class Main {
     }
     
     private static void registerCommands(Parser p) {
-        Command tablets = p.createCommand("tablets");
-        p.createAlias("tablets", "t");
-        Command t_create = tablets.createSubCommand("create");
-        tablets.createAlias("create", "c");
+        //Command tablets = p.createCommand("tablets");
+        //p.createAlias("tablets", "t");
+        Command t_create = p.createCommand("create");
+        p.createAlias("create", "c");
         t_create.createSubCommand("data", new ICommand() {
             @Override
             public void execute(List<Argument> args) {
@@ -109,7 +109,7 @@ public class Main {
                 }
             }
         });
-        tablets.createSubCommand("delete", new ICommand() {
+        p.createCommand("delete", new ICommand() {
             public void execute(List<Argument> args) {
                 if (args.size() != 1) {
                     System.out.println("Cannot execute: Malformed arguments");
@@ -121,8 +121,8 @@ public class Main {
                 }
             }
         });
-        tablets.createSubCommand("sete", new SetEntryCommandImpl());
-        tablets.createSubCommand("setf", new SetFileCommandImpl());
+        p.createCommand("sete", new SetEntryCommandImpl());
+        p.createCommand("setf", new SetFileCommandImpl());
         p.createCommand("prop", new PropagateCommandImpl());
         p.createCommand("printerr", new ICommand() {
             @Override

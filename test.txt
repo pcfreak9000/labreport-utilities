@@ -1,11 +1,52 @@
-tablets create func kappa
-t c data pa
-t c data pb
-t c data pc
-t c data result
-t sete kappa "k = (a-b)/(a-c)" a b c
-t setf v8_stuff.csv -skipl=2 -skipr=2 -countl=7 -countr=2 pa
-t setf v8_stuff.csv -skipl=2 -skipr=4 -countl=7 -countr=2 pb
-t setf v8_stuff.csv -skipl=2 -skipr=6 -countl=7 -countr=2 pc
+c func kopp
+c data x
+c data t
+c data result
+sete x 0.68172 0.03
+sete t 0.62928 0.01
+sete kopp "k = (x^2-t^2)/(x^2+t^2)" x t
+prop kopp result x=x t=t
+printerr
+exit
+
+c func schmelz
+c data W
+c data V
+c data m
+c data K
+c data result
+sete W 5524 1140
+sete V 1767 91
+sete m "0.4635-0.4566" "0.0001+0.0001"
+sete K 0.018 0
+sete schmelz "Q = (W-V)/(m/K)" W V m K
+prop schmelz result W=W V=V m=m K=K
+exit
+
+c func waerme
+c data c
+c data m
+c data T
+c data result
+sete c 4220 0
+sete m "0.4635-0.4566" "0.0001+0.0001"
+sete T "60.7" "1.4"
+sete waerme "Q = c * m * T" c m T
+prop waerme result c=c m=m T=T
+exit
+
+Q_Wasser = 5524 +- 1140
+Q_Eis = 1767 +- 91
+
+
+create func kappa
+c data pa
+c data pb
+c data pc
+c data result
+sete kappa "k = (a-b)/(a-c)" a b c
+setf v8_stuff.csv -skipl=2 -skipr=2 -countl=7 -countr=2 pa
+setf v8_stuff.csv -skipl=2 -skipr=4 -countl=7 -countr=2 pb
+setf v8_stuff.csv -skipl=2 -skipr=6 -countl=7 -countr=2 pc
 prop kappa result a=pa b=pb c=pc
 printerr
