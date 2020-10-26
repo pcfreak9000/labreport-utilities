@@ -1,18 +1,33 @@
+/*******************************************************************************
+ * Copyright (C) 2020 Roman Borris
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *******************************************************************************/
 package de.pcfreak9000.main;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 import org.matheclipse.core.eval.ExprEvaluator;
 
-import de.pcfreak9000.command.Argument;
-import de.pcfreak9000.command.Command;
-import de.pcfreak9000.command.ICommand;
-import de.pcfreak9000.command.Parser;
-import de.pcfreak9000.main.ErrorPropagation.PropagationType;
+import de.pcfreak9000.command.BaseCommand;
+import picocli.CommandLine;
 
 public class Main {
     
@@ -23,8 +38,8 @@ public class Main {
         if (EXPRESSION_EVALUATOR == null) {
             System.out.println("Initializing...");
             EXPRESSION_EVALUATOR = new ExprEvaluator();
-            //EXPRESSION_EVALUATOR.getEvalEngine().setNumericPrecision(20000);
-            //EXPRESSION_EVALUATOR.getEvalEngine().setSignificantFigures(100);
+            //EXPRESSION_EVALUATOR.getEvalEngine().setNumericPrecision(20000); //?!?!?
+            //EXPRESSION_EVALUATOR.getEvalEngine().setSignificantFigures(100); //?!?!?
         }
         return EXPRESSION_EVALUATOR;
     }
@@ -48,29 +63,17 @@ public class Main {
         } else {
             System.out.println("Reading instructions from the file \"" + args[0] + "\"");
         }
-        Parser parser = new Parser();
-        parser.createCommand("exit", new ICommand() {
-            @Override
-            public void execute(List<Argument> args) {
-                System.exit(0);
-            }
-            
-            @Override
-            public void help() {
-                System.out.println("Exits the program.");
-            }
-        });
-        //        parser.createCommand(">", new ICommand() {
-        //            @Override
-        //            public void execute(List<Argument> args) {
-        //                System.out.println(evaluator().eval(args.get(0).getArgument()));
-        //            }
-        //        });
-        registerCommands(parser);
+        CommandLine commandline = new CommandLine(new BaseCommand());
+        commandline.setCaseInsensitiveEnumValuesAllowed(true);
+        commandline.setErr(new PrintWriter(System.out));
         try (Scanner scan = new Scanner(in)) {
             while (scan.hasNextLine()) {
                 String line = scan.nextLine().trim();
-                parser.parseAndResolve(line);
+                String[] parseResult = parse(line);
+                if (parseResult == null || parseResult.length == 0) {
+                    continue;
+                }
+                commandline.execute(parseResult);
                 if (consoleInput) {
                     System.out.print(">> ");
                 }
@@ -78,65 +81,46 @@ public class Main {
         }
     }
     
-    private static void registerCommands(Parser p) {
-        //Command tablets = p.createCommand("tablets");
-        //p.createAlias("tablets", "t");
-        Command t_create = p.createCommand("create");
-        p.createAlias("create", "c");
-        t_create.createSubCommand("data", new ICommand() {
-            @Override
-            public void execute(List<Argument> args) {
-                if (args.size() != 1) {
-                    System.out.println("Cannot execute: Malformed arguments");
-                } else if (data.exists(args.get(0).getArgument())) {
-                    System.out.println("Cannot create: Name already taken");
-                } else {
-                    data.createDataTablet(args.get(0).getArgument());
-                    System.out.println("Created the data tablet '" + args.get(0).getArgument() + "'.");
+    private static String[] parse(String in) {
+        List<String> parts = new ArrayList<>();
+        char[] chars = in.toCharArray();
+        StringBuilder builder = new StringBuilder();
+        boolean inside = false;
+        for (int i = 0; i < chars.length; i++) {
+            char c = chars[i];
+            if (c == '"' && (i <= 1 || chars[i - 1] != '\\')) {
+                inside = !inside;
+                if (!inside) {
+                    String s = builder.toString();
+                    if (!s.isEmpty()) {
+                        s = s.replace("\\\"", "\"");
+                        parts.add(s);
+                        builder = new StringBuilder();
+                    }
                 }
+                continue;
             }
-        });
-        t_create.createSubCommand("func", new ICommand() {
-            @Override
-            public void execute(List<Argument> args) {
-                if (args.size() != 1) {
-                    System.out.println("Cannot execute: Malformed arguments");
-                } else if (data.exists(args.get(0).getArgument())) {
-                    System.out.println("Cannot create: Name already taken");
-                } else {
-                    data.createFormulaTablet(args.get(0).getArgument());
-                    System.out.println("Created the function tablet '" + args.get(0).getArgument() + "'.");
+            if ((c == ' ' && !inside) || i == chars.length - 1) {
+                if (i == chars.length - 1) {
+                    builder.append(c);
                 }
-            }
-        });
-        p.createCommand("delete", new ICommand() {
-            public void execute(List<Argument> args) {
-                if (args.size() != 1) {
-                    System.out.println("Cannot execute: Malformed arguments");
-                } else if (!data.exists(args.get(0).getArgument())) {
-                    System.out.println("Cannot delete: No such tablet");
-                } else {
-                    data.deleteTablet(args.get(0).getArgument());
-                    System.out.println("Deleted the tablet '" + args.get(0).getArgument() + "'.");
+                String s = builder.toString();
+                if (!s.isEmpty()) {
+                    s = s.trim();
+                    parts.add(s);
+                    builder = new StringBuilder();
                 }
+            } else {
+                builder.append(c);
             }
-        });
-        p.createCommand("sete", new SetEntryCommandImpl());
-        p.createCommand("setf", new SetFileCommandImpl());
-        p.createCommand("prop", new PropagateCommandImpl());
-        p.createCommand("printerr", new ICommand() {
-            @Override
-            public void execute(List<Argument> args) {
-                p.checkCommandException().printStackTrace();
-            }
-        });
+        }
+        if (inside) {
+            System.out.println("Unclosed '\"'");
+            return null;
+        }
+        return parts.toArray(String[]::new);
     }
     
-    //        Parser p = new Parser();
-    //        p.parse("test1 \"test2 \\\"gurke  \" test3  \"test4\"   \" \"");
-    //        String tmp = null;
-    //        String[] vars = { "x", "t" };
-    //        System.out.println(tmp = MathStuff.linearErrorPropagation("F = (x^2-t^2)/(x^2+t^2)", vars));
     //        tmp = MathStuff.EXPRESSION_EVALUATOR.eval(tmp).toString();
     //        TeXUtilities tex = new TeXUtilities(MathStuff.EXPRESSION_EVALUATOR.getEvalEngine(), true);
     //        StringWriter wr = new StringWriter();
