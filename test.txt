@@ -4,8 +4,8 @@ c data t
 c data result
 sete x 0.68172 0.03
 sete t 0.62928 0.01
-sete kopp "k = (x^2-t^2)/(x^2+t^2)" x t
-propagate kopp x=x t=t
+sete kopp "k = (X^2-t^2)/(X^2+t^2)" X t
+propagate -p kopp X=x t=t
 exit
 
 c func schmelz

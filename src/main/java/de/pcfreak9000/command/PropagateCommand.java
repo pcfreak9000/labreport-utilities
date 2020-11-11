@@ -20,12 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.ibm.icu.impl.LocaleDisplayNamesImpl.DataTableType;
+
 import de.pcfreak9000.main.DataTablet;
-import de.pcfreak9000.main.ErrorPropagation;
 import de.pcfreak9000.main.FunctionTablet;
+import de.pcfreak9000.main.FunctionTablet.PropagationType;
 import de.pcfreak9000.main.Main;
 import de.pcfreak9000.main.Tablet;
-import de.pcfreak9000.main.ErrorPropagation.PropagationType;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -42,11 +43,20 @@ public class PropagateCommand implements Runnable {
     @Option(names = { "-r", "--result" })
     private String resultTablet;
     
+    @Option(names = { "-t", "--tex" })
+    private boolean texify;//TODO do this here, or another command?
+    
+    @Option(names = { "-p", "--print" })
+    private boolean printresult;
+    
     @Parameters(index = "0")
     private String functionTablet;
     
     @Parameters(index = "1..*")
     private Map<String, String> tabletmap;
+    //TODO create "direct" mappings so constants without error dont need a dedicated tablet
+    
+    //TODO only propagate errors from vars who actually have an error
     
     @Override
     public void run() {
@@ -59,14 +69,27 @@ public class PropagateCommand implements Runnable {
             System.out.println("Tablet '" + functionTablet + "' is not a function tablet.");
             return;
         }
+        DataTablet resultTabletT = null;
+        if (resultTablet != null) {
+            if (!Main.data.exists(resultTablet)) {
+                System.out.println("Data tablet '" + resultTablet + "' does not exist.");
+                return;
+            }
+            Tablet rt = Main.data.getTablet(resultTablet);
+            if (!(rt instanceof DataTablet)) {
+                System.out.println("Tablet '" + resultTablet + "' is not a data tablet.");
+                return;
+            }
+            resultTabletT = (DataTablet) rt;
+        }
         FunctionTablet funct = (FunctionTablet) ta;
         String[] fargs = funct.getArgs();
         if (fargs.length != 0 && (tabletmap == null || tabletmap.size() != fargs.length)) {
             System.out.println("Number of function arguments and tablets not matching or the arguments are malformed");
             return;
         }
-        ErrorPropagation eprop = funct.createErrorPropagation();
-        PropagationType propagationtype = PropagationType.Gaussian;
+        //Prepare arguments, determine the propagation type
+        PropagationType propagationtype = PropagationType.Linear;
         String countName = null;
         DataTablet elementCountT = null;
         List<String> nonstatargs = new ArrayList<>();
@@ -90,19 +113,34 @@ public class PropagateCommand implements Runnable {
         if (this.forcePropagation != null) {
             propagationtype = this.forcePropagation;
         }
-        String errorprop = eprop.getErrorPropFunction(propagationtype);
-        for (int i = 0; i < (elementCountT == null ? 1 : elementCountT.getLength()); i++) {
+        //Finally calculate the stuff
+        String errorprop = funct.getErrorPropFunction(propagationtype);
+        int iterationCount = (elementCountT == null ? 1 : elementCountT.getLength());
+        String[] results = new String[iterationCount];
+        String[] errors = new String[iterationCount];
+        System.out.println("Using error propagation: " + propagationtype);
+        System.out.println("Value-Error pairs to be computed: " + iterationCount);
+        for (int i = 0; i < iterationCount; i++) {
             for (int j = 0; j < nonstatargs.size(); j++) {
                 DataTablet dt = (DataTablet) Main.data.getTablet(tabletmap.get(nonstatargs.get(j)));
                 Main.evaluator().defineVariable(nonstatargs.get(j), Main.evaluator().eval(dt.getValue(i)));
                 Main.evaluator().defineVariable("D" + nonstatargs.get(j), Main.evaluator().eval(dt.getError(i)));
             }
-            System.out.println(eprop.getHeader() + " = " + Main.evaluator().eval("N(" + funct.getFunction() + ")")
-                    + ", " + "D" + eprop.getHeader() + " = " + Main.evaluator().eval("N(" + errorprop + ")"));
-            //put in result tablet
+            results[i] = Main.evaluator().eval("N(" + funct.getFunction() + ")").toString();
+            errors[i] = Main.evaluator().eval("N(" + errorprop + ")").toString();
+            if (printresult) {
+                System.out.println(
+                        funct.getHeader() + " = " + results[i] + ", " + "D" + funct.getHeader() + " = " + errors[i]);
+            }
         }
-        Main.evaluator().clearVariables();
-        String tmp = eprop.getErrorPropFunction(propagationtype);
+        Main.evaluator().clearVariables();//This is important, otherwise stuff might act weird
+        if (resultTabletT != null) {
+            resultTabletT.setValues(results);
+            resultTabletT.setErrors(errors);
+            //TODO resultTabletT.setType(type); 
+            System.out.println("Wrote results into the tablet '" + resultTablet + "'.");
+        }
+        String tmp = funct.getErrorPropFunction(propagationtype);
         System.out.println(tmp);
         //                        TeXUtilities tex = new TeXUtilities(Main.evaluator().getEvalEngine(), true);
         //                        StringWriter wr = new StringWriter();

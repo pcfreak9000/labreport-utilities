@@ -31,9 +31,9 @@ import com.opencsv.CSVReaderBuilder;
 import com.opencsv.enums.CSVReaderNullFieldIndicator;
 
 import de.pcfreak9000.main.DataTablet;
+import de.pcfreak9000.main.DataTablet.DataType;
 import de.pcfreak9000.main.Main;
 import de.pcfreak9000.main.Tablet;
-import de.pcfreak9000.main.DataTablet.DataType;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;

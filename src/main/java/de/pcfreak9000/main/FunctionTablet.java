@@ -16,7 +16,17 @@
  *******************************************************************************/
 package de.pcfreak9000.main;
 
+import org.matheclipse.core.interfaces.IExpr;
+
 public class FunctionTablet implements Tablet {
+    
+    public static enum PropagationType {
+        Linear, Gaussian;
+        
+        public static PropagationType get(boolean stat) {
+            return stat ? Gaussian : Linear;
+        }
+    }
     
     private String function;
     private String[] args;
@@ -26,7 +36,7 @@ public class FunctionTablet implements Tablet {
     }
     
     public void setFunction(String function) {
-        this.function = function;
+        this.function = prepareFunction(function);
     }
     
     public String[] getArgs() {
@@ -37,9 +47,57 @@ public class FunctionTablet implements Tablet {
         this.args = args;
     }
     
-    //TODO performance
-    public ErrorPropagation createErrorPropagation() {
-        return new ErrorPropagation(function, args);
+    public String getErrorPropFunction(PropagationType type) {
+        return "D" + getHeader(function) + " = " + calculateErrorPropagation(type);
     }
     
+    private String calculateErrorPropagation(PropagationType type, String... evalVars) {
+        if (evalVars == null || evalVars.length == 0) {
+            evalVars = args;
+        }
+        StringBuilder b = new StringBuilder();
+        switch (type) {
+        case Gaussian:
+            b.append("sqrt(");
+            for (int i = 0; i < evalVars.length; i++) {
+                b.append("(" + evalPartial(evalVars[i]) + ")^2 * (\"D" + evalVars[i] + "\")^2"
+                        + (i == evalVars.length - 1 ? ")" : " + "));
+            }
+            break;
+        case Linear:
+            for (int i = 0; i < evalVars.length; i++) {
+                b.append("abs(" + evalPartial(evalVars[i]) + ")" + " * \"D" + evalVars[i] + "\""
+                        + (i == evalVars.length - 1 ? "" : " + "));
+            }
+            break;
+        default:
+            throw new IllegalStateException(type + "");
+        }
+        return Main.evaluator().eval(b.toString()).toString();
+    }
+    
+    private String evalPartial(String v) {
+        IExpr jv = Main.evaluator().eval("D(" + function + ", " + v + ")");
+        return jv.toString();
+    }
+    
+    @Deprecated
+    public String getHeader() {
+        return getHeader(function);
+    }
+    
+    private String getHeader(String function) {
+        String f = function.split("=")[0].trim();//FIXME headerless functions
+        if (f.contains("(")) {
+            f = f.split("(")[0].trim();
+        }
+        return f;
+    }
+    
+    private String prepareFunction(String function) {
+        if (!function.contains("=")) {
+            return "f = " + function;
+        }
+        return function;
+    }
 }
