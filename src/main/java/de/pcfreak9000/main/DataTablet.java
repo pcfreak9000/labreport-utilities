@@ -16,10 +16,23 @@
  *******************************************************************************/
 package de.pcfreak9000.main;
 
+import de.pcfreak9000.main.FunctionTablet.PropagationType;
+
 public class DataTablet implements Tablet {
     
-    public static enum DataType{
-        RAW_STATISTICAL, RAW_MULTI, RESULT_STATISTICAL, RESULT_MULTI
+    public static enum DataType {//TODO Meh....
+        RAW_STATISTICAL, RAW_MULTI, RESULT_STATISTICAL, RESULT_MULTI;
+        
+        public static DataType ofPropagation(PropagationType t) {
+            switch (t) {
+            case Gaussian:
+                return RESULT_STATISTICAL;
+            case Linear:
+                return RESULT_MULTI;
+            default:
+                throw new IllegalStateException(t + "");
+            }
+        }
     }
     
     private String[] values;
@@ -44,8 +57,8 @@ public class DataTablet implements Tablet {
         this.errors = null;
     }
     
-    public boolean isStatistical() {
-        return this.type==DataType.RAW_STATISTICAL && (errors == null || errors.length > 1);
+    public boolean isStatistical() {//Meh... kinda ugly
+        return this.type == DataType.RAW_STATISTICAL && (errors == null || errors.length > 1);
     }
     
     public int getLength() {
