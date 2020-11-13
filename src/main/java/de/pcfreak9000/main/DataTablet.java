@@ -20,25 +20,15 @@ import de.pcfreak9000.main.FunctionTablet.PropagationType;
 
 public class DataTablet implements Tablet {
     
-    public static enum DataType {//TODO Meh....
-        RAW_STATISTICAL, RAW_MULTI, RESULT_STATISTICAL, RESULT_MULTI;
-        
-        public static DataType ofPropagation(PropagationType t) {
-            switch (t) {
-            case Gaussian:
-                return RESULT_STATISTICAL;
-            case Linear:
-                return RESULT_MULTI;
-            default:
-                throw new IllegalStateException(t + "");
-            }
-        }
+    public static enum DataUsage {
+        Raw, MeanAndStandardDeviation
     }
     
     private String[] values;
     private String[] errors;
     
-    private DataType type;
+    private PropagationType preferredPropagation;
+    private DataUsage dataUsage;
     
     public void setValues(String... values) {
         this.values = values;
@@ -48,21 +38,29 @@ public class DataTablet implements Tablet {
         this.errors = errors;
     }
     
-    public void setType(DataType type) {
-        this.type = type;
-    }
-    
     public void clear() {
         this.values = null;
         this.errors = null;
     }
     
-    public boolean isStatistical() {//Meh... kinda ugly
-        return this.type == DataType.RAW_STATISTICAL && (errors == null || errors.length > 1);
+    public void setPreferredPropagation(PropagationType pt) {
+        this.preferredPropagation = pt;
+    }
+    
+    public PropagationType getPreferredPropagation() {
+        return preferredPropagation;
     }
     
     public int getLength() {
-        return isStatistical() ? 1 : (values == null ? 0 : values.length);
+        return getDataUsage() == DataUsage.Raw ? (values == null ? 0 : values.length) : 1;//Well well well...
+    }
+    
+    public DataUsage getDataUsage() {
+        return dataUsage;
+    }
+    
+    public void setDataUsage(DataUsage dataUsage) {
+        this.dataUsage = dataUsage;
     }
     
     private String createStandardDeviationEvalString() {
@@ -94,7 +92,7 @@ public class DataTablet implements Tablet {
     
     public String getError(int index) {
         if (errors != null) {
-            if (isStatistical()) {
+            if (getDataUsage() == DataUsage.MeanAndStandardDeviation) {
                 return Main.evaluator().eval(createStandardDeviationEvalString()).toString();
             } else {
                 return errors[index];
@@ -106,7 +104,7 @@ public class DataTablet implements Tablet {
     
     public String getValue(int index) {
         if (values != null) {
-            if (isStatistical()) {
+            if (getDataUsage() == DataUsage.MeanAndStandardDeviation) {
                 return Main.evaluator().eval(createMeanEvalString()).toString();
             } else {
                 return values[index];

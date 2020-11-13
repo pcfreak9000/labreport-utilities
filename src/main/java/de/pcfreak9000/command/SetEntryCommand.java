@@ -20,8 +20,10 @@ import java.util.Arrays;
 
 import de.pcfreak9000.main.DataTablet;
 import de.pcfreak9000.main.FunctionTablet;
+import de.pcfreak9000.main.FunctionTablet.PropagationType;
 import de.pcfreak9000.main.Main;
 import de.pcfreak9000.main.Tablet;
+import de.pcfreak9000.main.DataTablet.DataUsage;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -61,6 +63,8 @@ public class SetEntryCommand implements Runnable {
         String err = params.length == 0 ? "0" : params[0];
         tab.setValues(value);
         tab.setErrors(err);
+        tab.setDataUsage(DataUsage.Raw);
+        tab.setPreferredPropagation(PropagationType.Linear);
         System.out.println(
                 "Set the value of tablet '" + tabletName + "' to '" + value + "' and the error to '" + err + "'.");
     }

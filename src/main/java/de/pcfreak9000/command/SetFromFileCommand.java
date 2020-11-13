@@ -31,7 +31,8 @@ import com.opencsv.CSVReaderBuilder;
 import com.opencsv.enums.CSVReaderNullFieldIndicator;
 
 import de.pcfreak9000.main.DataTablet;
-import de.pcfreak9000.main.DataTablet.DataType;
+import de.pcfreak9000.main.DataTablet.DataUsage;
+import de.pcfreak9000.main.FunctionTablet.PropagationType;
 import de.pcfreak9000.main.Main;
 import de.pcfreak9000.main.Tablet;
 import picocli.CommandLine.Command;
@@ -119,10 +120,11 @@ public class SetFromFileCommand implements Runnable {
         dt.setValues(values.toArray(String[]::new));
         dt.setErrors(errors.toArray(String[]::new));
         if (statistical) {
-            dt.setType(DataType.RAW_STATISTICAL);
+            dt.setDataUsage(DataUsage.MeanAndStandardDeviation);
         } else {
-            dt.setType(DataType.RAW_MULTI);
-        }
+            dt.setDataUsage(DataUsage.Raw);
+        } //Thats not nice but it should work... for now
+        dt.setPreferredPropagation(PropagationType.get(statistical));
         System.out.println("Successfully read the file '" + file.toString() + "'");
     }
 }

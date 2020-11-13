@@ -26,6 +26,18 @@ public class FunctionTablet implements Tablet {
         public static PropagationType get(boolean stat) {
             return stat ? Gaussian : Linear;
         }
+        
+        public PropagationType compare(PropagationType pt) {
+            switch (pt) {
+            case Gaussian:
+                return Gaussian;
+            case Linear:
+                return this;
+            default:
+                throw new IllegalStateException(pt + "");
+            
+            }
+        }
     }
     
     private String function;

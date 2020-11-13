@@ -27,6 +27,7 @@ import de.pcfreak9000.main.FunctionTablet;
 import de.pcfreak9000.main.FunctionTablet.PropagationType;
 import de.pcfreak9000.main.Main;
 import de.pcfreak9000.main.Tablet;
+import de.pcfreak9000.main.DataTablet.DataUsage;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -95,7 +96,7 @@ public class PropagateCommand implements Runnable {
         List<String> nonstatargs = new ArrayList<>();
         for (int i = 0; i < fargs.length; i++) {
             DataTablet dt = (DataTablet) Main.data.getTablet(tabletmap.get(fargs[i]));
-            if (!dt.isStatistical()) {
+            if (dt.getDataUsage() == DataUsage.Raw) {
                 if (elementCountT != null && elementCountT.getLength() != dt.getLength()) {
                     System.out.println("Amount of rows not matching! Expected: " + elementCountT.getLength() + "('"
                             + countName + "'), actual: " + dt.getLength() + "('" + tabletmap.get(fargs[i]) + "')");
@@ -107,8 +108,8 @@ public class PropagateCommand implements Runnable {
             } else {
                 Main.evaluator().defineVariable(fargs[i], Main.evaluator().eval(dt.getValue(0)));
                 Main.evaluator().defineVariable("D" + fargs[i], Main.evaluator().eval(dt.getError(0)));
-                propagationtype = PropagationType.Gaussian;
             }
+            propagationtype = propagationtype.compare(dt.getPreferredPropagation());
         }
         if (this.forcePropagation != null) {
             propagationtype = this.forcePropagation;
@@ -137,7 +138,8 @@ public class PropagateCommand implements Runnable {
         if (resultTabletT != null) {
             resultTabletT.setValues(results);
             resultTabletT.setErrors(errors);
-            //TODO resultTabletT.setType(type); 
+            resultTabletT.setPreferredPropagation(propagationtype);
+            resultTabletT.setDataUsage(DataUsage.Raw);//Raw should make sense... 
             System.out.println("Wrote results into the tablet '" + resultTablet + "'.");
         }
         String tmp = funct.getErrorPropFunction(propagationtype);
