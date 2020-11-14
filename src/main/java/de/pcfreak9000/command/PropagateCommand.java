@@ -44,8 +44,8 @@ public class PropagateCommand implements Runnable {
     @Option(names = { "-r", "--result" })
     private String resultTablet;
     
-    @Option(names = { "-t", "--tex" })
-    private boolean texify;//TODO do this here, or another command?
+    //    @Option(names = { "-t", "--tex" })
+    //    private boolean texify;//TODO do this here, or another command?
     
     @Option(names = { "-p", "--print" })
     private boolean printresult;
@@ -127,8 +127,8 @@ public class PropagateCommand implements Runnable {
                 Main.evaluator().defineVariable(nonstatargs.get(j), Main.evaluator().eval(dt.getValue(i)));
                 Main.evaluator().defineVariable("D" + nonstatargs.get(j), Main.evaluator().eval(dt.getError(i)));
             }
-            results[i] = Main.evaluator().eval("N(" + funct.getFunction() + ")").toString();
-            errors[i] = Main.evaluator().eval("N(" + errorprop + ")").toString();
+            results[i] = Main.evaluator().eval("N[" + funct.getFunction() + "]").toString();
+            errors[i] = Main.evaluator().eval("N[" + errorprop + "]").toString();
             if (printresult) {
                 System.out.println(
                         funct.getHeader() + " = " + results[i] + ", " + "D" + funct.getHeader() + " = " + errors[i]);
@@ -143,17 +143,7 @@ public class PropagateCommand implements Runnable {
             System.out.println("Wrote results into the tablet '" + resultTablet + "'.");
         }
         String tmp = funct.getErrorPropFunction(propagationtype);
-        System.out.println(tmp);
-        //                        TeXUtilities tex = new TeXUtilities(Main.evaluator().getEvalEngine(), true);
-        //                        StringWriter wr = new StringWriter();
-        //                        tex.toTeX(tmp, wr);
-        //                        String texString = wr.toString();
-        //                        for (int i = 0; i < fargs.length; i++) {
-        //                            texString = texString.replace("d" + fargs[i], "\\Delta " + fargs[i]);
-        //                        }
-        //                        System.out.println(texString.replace("\\cdot", "").replace("{t}", "{\\omega}").replace("{x}",
-        //                                "{\\Omega}"));
-        
+        System.out.println(tmp);//TODO cleanup
     }
     
 }

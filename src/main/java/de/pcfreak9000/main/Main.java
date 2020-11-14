@@ -38,6 +38,8 @@ public class Main {
         if (EXPRESSION_EVALUATOR == null) {
             System.out.println("Initializing...");
             EXPRESSION_EVALUATOR = new ExprEvaluator();
+            //EXPRESSION_EVALUATOR.getEvalEngine().setRelaxedSyntax(false);
+            //EXPRESSION_EVALUATOR.getEvalEngine().eval
             //EXPRESSION_EVALUATOR.getEvalEngine().setNumericPrecision(20000); //?!?!?
             //EXPRESSION_EVALUATOR.getEvalEngine().setSignificantFigures(100); //?!?!?
         }
@@ -59,6 +61,7 @@ public class Main {
             }
         }
         if (consoleInput) {
+            System.out.println("Ready. Type -h for help.");
             System.out.print(">> ");
         } else {
             System.out.println("Reading instructions from the file \"" + args[0] + "\"");

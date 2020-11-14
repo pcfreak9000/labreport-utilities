@@ -63,34 +63,34 @@ public class FunctionTablet implements Tablet {
         return "D" + getHeader(function) + " = " + calculateErrorPropagation(type);
     }
     
-    private String calculateErrorPropagation(PropagationType type, String... evalVars) {
+    private IExpr calculateErrorPropagation(PropagationType type, String... evalVars) {
         if (evalVars == null || evalVars.length == 0) {
             evalVars = args;
         }
         StringBuilder b = new StringBuilder();
+        b.append("D" + getHeader(function) + " = ");
         switch (type) {
         case Gaussian:
-            b.append("sqrt(");
+            b.append("sqrt[");
             for (int i = 0; i < evalVars.length; i++) {
-                b.append("(" + evalPartial(evalVars[i]) + ")^2 * (\"D" + evalVars[i] + "\")^2"
-                        + (i == evalVars.length - 1 ? ")" : " + "));
+                b.append("(" + getPartial(evalVars[i]) + ")^2 * (\"D" + evalVars[i] + "\")^2"
+                        + (i == evalVars.length - 1 ? "]" : " + "));
             }
             break;
         case Linear:
             for (int i = 0; i < evalVars.length; i++) {
-                b.append("abs(" + evalPartial(evalVars[i]) + ")" + " * \"D" + evalVars[i] + "\""
+                b.append("abs[" + getPartial(evalVars[i]) + "]" + " * \"D" + evalVars[i] + "\""
                         + (i == evalVars.length - 1 ? "" : " + "));
             }
             break;
         default:
             throw new IllegalStateException(type + "");
         }
-        return Main.evaluator().eval(b.toString()).toString();
+        return Main.evaluator().eval(b.toString());
     }
     
-    private String evalPartial(String v) {
-        IExpr jv = Main.evaluator().eval("D(" + function + ", " + v + ")");
-        return jv.toString();
+    private String getPartial(String v) {
+        return "D[" + function + ", " + v + "]";
     }
     
     @Deprecated
