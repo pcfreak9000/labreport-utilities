@@ -98,7 +98,7 @@ public class DataTablet implements Tablet {
                 return errors[index];
             }
         } else {
-            return null;
+            return null;//Instead return "0"? Imagine a file not giving any errors...
         }
     }
     
