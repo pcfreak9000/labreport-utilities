@@ -28,7 +28,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "sete")
+@Command(name = "sete", description = "Sets the content of a data tablet directly from the input (manually).")
 public class SetEntryCommand implements Runnable {
     
     @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC)
@@ -46,7 +46,7 @@ public class SetEntryCommand implements Runnable {
     @Override
     public void run() {
         if (!Main.data.exists(tabletName)) {
-            System.out.println("Cannot set entry: No such tablet");
+            System.out.println("Cannot set entry: No such tablet: '" + tabletName + "'");
             return;
         }
         Tablet ta = Main.data.getTablet(tabletName);

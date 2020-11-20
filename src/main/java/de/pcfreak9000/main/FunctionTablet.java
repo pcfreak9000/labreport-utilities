@@ -18,13 +18,22 @@ package de.pcfreak9000.main;
 
 import org.matheclipse.core.interfaces.IExpr;
 
+import de.pcfreak9000.main.DataTablet.DataUsage;
+
 public class FunctionTablet implements Tablet {
     
     public static enum PropagationType {
         Linear, Gaussian;
         
-        public static PropagationType get(boolean stat) {
-            return stat ? Gaussian : Linear;
+        public static PropagationType get(DataUsage du) {
+            switch (du) {
+            case MeanAndStandardDeviation:
+                return Gaussian;
+            case Raw:
+                return Linear;
+            default:
+                throw new IllegalStateException(du + "");
+            }
         }
         
         public PropagationType compare(PropagationType pt) {

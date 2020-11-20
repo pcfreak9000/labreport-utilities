@@ -32,28 +32,28 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "propagate", aliases = "p")
+@Command(name = "propagate", aliases = "p", description = "Computes values and errors with given function- and data tablets.")
 public class PropagateCommand implements Runnable {
     
     @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC)
     private boolean help;
     
-    @Option(names = { "-f", "--forceprop" })
+    @Option(names = { "-f",
+            "--forceprop" }, paramLabel = "<propagation type>", description = "Use this option to force a certain type of error propagation. Valid values: ${COMPLETION-CANDIDATES}")
     private PropagationType forcePropagation;
     
-    @Option(names = { "-r", "--result" })
+    @Option(names = { "-r",
+            "--result" }, paramLabel = "<data tablet>", description = "Use this option to set a data tablet to store the result of the computation in.")
     private String resultTablet;
     
-    //    @Option(names = { "-t", "--tex" })
-    //    private boolean texify;//TODO do this here, or another command?
-    
-    @Option(names = { "-p", "--print" })
+    @Option(names = { "-p",
+            "--print" }, description = "Specify this flag to immediately print the result to the output.")
     private boolean printresult;
     
-    @Parameters(index = "0")
+    @Parameters(index = "0", paramLabel = "FUNCTION_TABLET", description = "A function tablet to perform the calculations on.")
     private String functionTablet;
     
-    @Parameters(index = "1..*")
+    @Parameters(index = "1..*", paramLabel = "<variable>=<data tablet>", description = "Map variables used in the stated function to data tablets.") //TODO better description concerning datausage stuff with the tablets
     private Map<String, String> tabletmap;
     //TODO create "direct" mappings so constants without error dont need a dedicated tablet
     

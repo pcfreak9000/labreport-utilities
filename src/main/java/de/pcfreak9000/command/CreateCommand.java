@@ -48,6 +48,6 @@ public class CreateCommand {
             return;
         }
         Main.data.createDataTablet(name);
-        System.out.println("Created the function tablet '" + name + "'.");
+        System.out.println("Created the data tablet '" + name + "'.");
     }
 }

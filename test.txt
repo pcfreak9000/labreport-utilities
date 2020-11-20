@@ -1,3 +1,41 @@
+propagate -h
+setf -h
+sete -h
+create func kappa
+c data pa
+c data pb
+c data pc
+c data result
+sete kappa "k = (a-b)/(a-c)" a b c
+setf pa v8_stuff.csv -o=2 -v=2 -e=3 -c=7
+setf pb v8_stuff.csv -o=2 -v=4 -e=5 -c=7
+setf pc v8_stuff.csv -o=2 -v=6 -e=7 -c=7
+propagate kappa -p a=pa b=pb c=pc
+tex kappa linear a b c
+exit
+
+c func q
+c data p
+c data o
+sete q "q = ((p-o)/(p+o))" p o
+sete p 182.5 0.2
+sete o 179.8 0.2
+propagate -p -f=gaussian q p=p o=o
+sete p 190.5 0.2
+sete o 167.0 0.2
+propagate -p -f=gaussian q p=p o=o
+tex q gaussian p o
+exit
+
+c func fun 
+c data g
+sete fun  "n = tan(Degree*((180-g)/2))" g
+sete g 66 5
+propagate -p fun g=g
+tex fun linear g
+exit
+
+
 c func kopp
 c data x
 c data t
@@ -22,31 +60,3 @@ sete K 0.018 0
 sete schmelz "Q = (W-V)/(m/K)" W V m K
 prop schmelz result W=W V=V m=m K=K
 exit
-
-c func waerme
-c data c
-c data m
-c data T
-c data result
-sete c 4220 0
-sete m "0.4635-0.4566" "0.0001+0.0001"
-sete T "60.7" "1.4"
-sete waerme "Q = c * m * T" c m T
-prop waerme result c=c m=m T=T
-exit
-
-Q_Wasser = 5524 +- 1140
-Q_Eis = 1767 +- 91
-
-
-create func kappa
-c data pa
-c data pb
-c data pc
-c data result
-sete kappa "k = (a-b)/(a-c)" a b c
-setf v8_stuff.csv -skipl=2 -skipr=2 -countl=7 -countr=2 pa
-setf v8_stuff.csv -skipl=2 -skipr=4 -countl=7 -countr=2 pb
-setf v8_stuff.csv -skipl=2 -skipr=6 -countl=7 -countr=2 pc
-prop kappa result a=pa b=pb c=pc
-printerr

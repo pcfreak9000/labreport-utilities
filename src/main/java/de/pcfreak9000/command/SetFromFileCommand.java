@@ -22,8 +22,10 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import com.google.common.collect.Lists;
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
@@ -39,36 +41,36 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "setf", description = "Sets the content of a data tablet from a file")
+@Command(name = "setf", description = "Sets the content of a data tablet from a file.")
 public class SetFromFileCommand implements Runnable {
     
     @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC)
     private boolean help;
     
-    @Option(names = { "-l",
-            "--skipl" }, description = "Skips the specified amount of lines. 0 by default.", defaultValue = "0")
-    private int skipLines;
+    @Option(names = { "-c",
+            "--count" }, defaultValue = "-1", description = "The amount of values. The command will read all lines if not specified.")
+    private int count;
     
-    @Option(names = { "-r",
-            "--skipr" }, description = "Skips the specified amount of rows. 0 by default.", defaultValue = "0")
-    private int skipRows;
+    @Option(names = { "-o",
+            "--offset" }, defaultValue = "0", description = "The line offset, i.e. the amount of lines to ignore.")
+    private int lineOffset;
     
-    @Option(names = { "-L",
-            "--countl" }, description = "The amount of lines that will be read. By default, all lines will be read.", defaultValue = "-1")
-    private int linesCount;
+    @Option(names = { "-v",
+            "--valueIndex" }, defaultValue = "0", description = "The index, zero based, of the value column.")
+    private int valueColumn;
     
-    @Option(names = { "-R",
-            "--countr" }, description = "The amount of rows that will be read. By default, all rows will be read.", defaultValue = "-1")
-    private int rowsCount;
+    @Option(names = { "-e",
+            "--errorIndex" }, defaultValue = "1", description = "The index, zero based, of the error column.")
+    private int errorColumn;
     
     @Option(names = { "-s",
-            "--stat" }, description = "Specify this flag if the data is to be intepreted statistically, e.g. if the data represents something that was measured multiple times", defaultValue = "false")
-    private boolean statistical;
+            "--masd" }, defaultValue = "false", description = "Specify this flag if the mean and the standard deviation of this data set is to be used in calculations instead of doing a computation per individual value.")
+    private boolean dataUsageMasd;//masd=Mean and Standard Deviation
     
-    @Parameters(paramLabel = "FILE", description = "The file from which the tablet is to be filled", index = "1")
+    @Parameters(paramLabel = "FILE", description = "The file from which the tablet is to be filled.", index = "1")
     private Path filepath;
     
-    @Parameters(paramLabel = "TABLET_NAME", description = "The tablet that is to be filled", index = "0")
+    @Parameters(paramLabel = "TABLET_NAME", description = "The tablet that is to be filled.", index = "0")
     private String tabletName;
     
     @Override
@@ -83,7 +85,7 @@ public class SetFromFileCommand implements Runnable {
         try (Reader reader = Files.newBufferedReader(filepath)) {
             CSVParser csvParser = new CSVParserBuilder().withFieldAsNull(CSVReaderNullFieldIndicator.BOTH)
                     .withIgnoreLeadingWhiteSpace(true).withStrictQuotes(false).build();
-            CSVReader csvReader = new CSVReaderBuilder(reader).withSkipLines(skipLines).withCSVParser(csvParser)
+            CSVReader csvReader = new CSVReaderBuilder(reader).withSkipLines(lineOffset).withCSVParser(csvParser)
                     .build();
             entries = csvReader.readAll();
         } catch (IOException e) {
@@ -98,33 +100,35 @@ public class SetFromFileCommand implements Runnable {
         DataTablet dt = (DataTablet) ta;
         List<String> values = new ArrayList<>();
         List<String> errors = new ArrayList<>();
-        for (int i = 0; i < (linesCount == -1 ? entries.size() : linesCount); i++) {
-            int k = 0;
-            for (int j = skipRows; j < skipRows + (rowsCount == -1 ? entries.get(i).length : rowsCount); j++) {
-                String cell = entries.get(i)[j];
-                if (cell != null) {
-                    cell = cell.replace(',', '.');
-                    if (!cell.matches(Main.SUPPORTED_NUMBER_FORMAT_REGEX)) {
-                        System.out.println("Cell is not matching the supported number format: '" + cell + "'");
-                        return;
-                    } //big oof here:
-                    if (k == 0) {
-                        values.add(cell);
-                        k++;
-                    } else if (k == 1) {
-                        errors.add(cell);
-                    }
-                }
+        int index = 0;
+        for (String[] entry : entries) {//TODO Boundary checks, better error messages etc
+            String value = entry[valueColumn];
+            value = value.replace(',', '.');
+            if (!value.matches(Main.SUPPORTED_NUMBER_FORMAT_REGEX)) {//Put this in a method!!
+                System.out.println("Cell is not matching the supported number format: '" + value + "'");
+                return;
+            }
+            values.add(value);
+            String error = entry[errorColumn];//errorColumn == -1 -> error is zero?
+            error = error.replace(',', '.');
+            if (!error.matches(Main.SUPPORTED_NUMBER_FORMAT_REGEX)) {
+                System.out.println("Cell is not matching the supported number format: '" + value + "'");
+                return;
+            }
+            errors.add(error);
+            index++;
+            if (count != -1 && index >= count) {//We are done
+                break;
             }
         }
         dt.setValues(values.toArray(String[]::new));
         dt.setErrors(errors.toArray(String[]::new));
-        if (statistical) {
+        if (dataUsageMasd) {
             dt.setDataUsage(DataUsage.MeanAndStandardDeviation);
         } else {
             dt.setDataUsage(DataUsage.Raw);
-        } //Thats not nice but it should work... for now
-        dt.setPreferredPropagation(PropagationType.get(statistical));
+        }
+        dt.setPreferredPropagation(PropagationType.get(dt.getDataUsage()));
         System.out.println("Successfully read the file '" + file.toString() + "'");
     }
 }
