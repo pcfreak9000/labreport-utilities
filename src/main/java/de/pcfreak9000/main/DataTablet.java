@@ -124,9 +124,4 @@ public class DataTablet implements Tablet {
         return s;
     }
     
-    //Read files
-    //Read from console
-    //Calculate errors and statistical stuff
-    //One measurement vs many
-    
 }

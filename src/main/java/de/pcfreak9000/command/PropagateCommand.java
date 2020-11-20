@@ -62,7 +62,7 @@ public class PropagateCommand implements Runnable {
     @Override
     public void run() {
         if (!Main.data.exists(functionTablet)) {
-            System.out.println("Function tablet '" + functionTablet + "' does not exist.");
+            System.out.println("Tablet '" + functionTablet + "' does not exist.");
             return;
         }
         Tablet ta = Main.data.getTablet(functionTablet);

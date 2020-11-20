@@ -17,34 +17,28 @@
 package de.pcfreak9000.command;
 
 import de.pcfreak9000.main.Main;
+import de.pcfreak9000.main.Tablet;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "", subcommands = { CreateCommand.class, SetFromFileCommand.class, SetEntryCommand.class,
-        PropagateCommand.class, TexCommand.class, PrintTabletCommand.class })
-public class BaseCommand {
+@Command(name = "print")
+public class PrintTabletCommand implements Runnable {
     
-    public static final String HELP_DESC = "display this help message";
-    
-    @Option(names = { "-h", "--help" }, usageHelp = true, description = HELP_DESC)
+    @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC)
     private boolean help;
     
-    @Command(name = "exit", description = "Exits the program")
-    void exitCommand() {
-        System.exit(0);
-    }
+    @Parameters(index = "0", paramLabel = "<TABLET>")
+    private String tabletName;
     
-    @Command(name = "delete", description = "Deletes a tablet")
-    void deleteTablet(
-            @Parameters(paramLabel = "NAME", description = "The name of the tablet that is to be deleted", index = "0") String name,
-            @Option(names = { "-h", "--help" }, usageHelp = true, description = HELP_DESC) boolean help) {
-        if (!Main.data.exists(name)) {
-            System.out.println("Cannot delete: No such tablet");
+    @Override
+    public void run() {
+        if (!Main.data.exists(tabletName)) {
+            System.out.println("Tablet '" + tabletName + "' does not exist.");
             return;
         }
-        Main.data.deleteTablet(name);
-        System.out.println("Deleted the tablet '" + name + "'.");
+        Tablet tablet = Main.data.getTablet(tabletName);
+        System.out.println(tablet.toString());//Lol this is useless right now
     }
     
 }
