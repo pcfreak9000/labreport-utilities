@@ -67,10 +67,10 @@ public class SetFromFileCommand implements Runnable {
             "--masd" }, defaultValue = "false", description = "Specify this flag if the mean and the standard deviation of this data set is to be used in calculations instead of doing a computation per individual value.")
     private boolean dataUsageMasd;//masd=Mean and Standard Deviation
     
-    @Parameters(paramLabel = "FILE", description = "The file from which the tablet is to be filled.", index = "1")
+    @Parameters(paramLabel = "<FILE>", description = "The file from which the tablet is to be filled.", index = "1")
     private Path filepath;
     
-    @Parameters(paramLabel = "TABLET_NAME", description = "The tablet that is to be filled.", index = "0")
+    @Parameters(paramLabel = "<TABLET_NAME>", description = "The tablet that is to be filled.", index = "0")
     private String tabletName;
     
     @Override

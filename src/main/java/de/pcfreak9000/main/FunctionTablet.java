@@ -68,8 +68,8 @@ public class FunctionTablet implements Tablet {
         this.args = args;
     }
     
-    public String getErrorPropFunction(PropagationType type) {
-        return "D" + getHeader(function) + " = " + calculateErrorPropagation(type);
+    public String getErrorPropFunction(PropagationType type, String... evalVars) {
+        return "D" + getHeader(function) + " = " + calculateErrorPropagation(type, evalVars);
     }
     
     private IExpr calculateErrorPropagation(PropagationType type, String... evalVars) {
@@ -80,7 +80,7 @@ public class FunctionTablet implements Tablet {
         b.append("D" + getHeader(function) + " = ");
         switch (type) {
         case Gaussian:
-            b.append("sqrt[");
+            b.append("Sqrt[");
             for (int i = 0; i < evalVars.length; i++) {
                 b.append("(" + getPartial(evalVars[i]) + ")^2 * (\"D" + evalVars[i] + "\")^2"
                         + (i == evalVars.length - 1 ? "]" : " + "));
@@ -88,7 +88,7 @@ public class FunctionTablet implements Tablet {
             break;
         case Linear:
             for (int i = 0; i < evalVars.length; i++) {
-                b.append("abs[" + getPartial(evalVars[i]) + "]" + " * \"D" + evalVars[i] + "\""
+                b.append("Abs[" + getPartial(evalVars[i]) + "]" + " * \"D" + evalVars[i] + "\""
                         + (i == evalVars.length - 1 ? "" : " + "));
             }
             break;

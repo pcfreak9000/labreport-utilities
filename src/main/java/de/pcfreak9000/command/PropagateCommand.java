@@ -31,7 +31,7 @@ import de.pcfreak9000.main.DataTablet.DataUsage;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-
+//TODO DOC support of mathematical expressions in sete; dont use mathematical constants like e or pi as variable, that might confuse the system
 @Command(name = "propagate", aliases = "p", description = "Computes values and errors with given function- and data tablets.")
 public class PropagateCommand implements Runnable {
     
@@ -50,7 +50,7 @@ public class PropagateCommand implements Runnable {
             "--print" }, description = "Specify this flag to immediately print the result to the output.")
     private boolean printresult;
     
-    @Parameters(index = "0", paramLabel = "FUNCTION_TABLET", description = "A function tablet to perform the calculations on.")
+    @Parameters(index = "0", paramLabel = "<FUNCTION_TABLET>", description = "A function tablet to perform the calculations on.")
     private String functionTablet;
     
     @Parameters(index = "1..*", paramLabel = "<variable>=<data tablet>", description = "Map variables used in the stated function to data tablets.") //TODO better description concerning datausage stuff with the tablets

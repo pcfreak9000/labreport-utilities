@@ -1,6 +1,7 @@
 propagate -h
 setf -h
 sete -h
+tex -h
 create func kappa
 c data pa
 c data pb
@@ -11,7 +12,8 @@ setf pa v8_stuff.csv -o=2 -v=2 -e=3 -c=7
 setf pb v8_stuff.csv -o=2 -v=4 -e=5 -c=7
 setf pc v8_stuff.csv -o=2 -v=6 -e=7 -c=7
 propagate kappa -p a=pa b=pb c=pc
-tex kappa linear a b c
+tex kappa -p=linear -v a -v b -v c
+tex kappa
 exit
 
 c func q
