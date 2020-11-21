@@ -16,19 +16,21 @@
  *******************************************************************************/
 package de.pcfreak9000.command;
 
+import de.pcfreak9000.main.DataTablet;
+import de.pcfreak9000.main.FunctionTablet;
 import de.pcfreak9000.main.Main;
 import de.pcfreak9000.main.Tablet;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "print")
+@Command(name = "print", description = "A simple command to print tablets.")
 public class PrintTabletCommand implements Runnable {
     
     @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC)
     private boolean help;
     
-    @Parameters(index = "0", paramLabel = "<TABLET>")
+    @Parameters(index = "0", paramLabel = "<TABLET>", description = "The tablet to print.")
     private String tabletName;
     
     @Override
@@ -38,7 +40,16 @@ public class PrintTabletCommand implements Runnable {
             return;
         }
         Tablet tablet = Main.data.getTablet(tabletName);
-        System.out.println(tablet.toString());//Lol this is useless right now
+        if (tablet instanceof DataTablet) {
+            DataTablet dt = (DataTablet) tablet;
+            System.out.println("Data '" + tabletName + "':");
+            System.out.println(dt.stringRepresentation());
+        } else if (tablet instanceof FunctionTablet) {
+            FunctionTablet ft = (FunctionTablet) tablet;
+            System.out.println("Function '" + tabletName + "': " + ft.getFunction());
+        } else {
+            System.out.println(tablet.toString());
+        }
     }
     
 }

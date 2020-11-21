@@ -1,20 +1,40 @@
+%Show help messages
+-h
 propagate -h
 setf -h
 sete -h
 tex -h
+print -h
+
+%Create various tablets
 create func kappa
 c data pa
 c data pb
 c data pc
 c data result
+
+%Setting the content of the tablets
 sete kappa "k = (a-b)/(a-c)" a b c
 setf pa v8_stuff.csv -o=2 -v=2 -e=3 -c=7
 setf pb v8_stuff.csv -o=2 -v=4 -e=5 -c=7
-setf pc v8_stuff.csv -o=2 -v=6 -e=7 -c=7
-propagate kappa -p a=pa b=pb c=pc
+setf pc v8_stuff.csv -o=2 -v=6 -e=7 -c=7 
+
+%Calculate the result
+propagate kappa -r=result -p a=pa b=pb c=pc
+
+%TeX form stuff
 tex kappa -p=linear -v a -v b -v c
 tex kappa
+
+%Printing the contents of the tablets
+print kappa
+print pa
+print result
+
+%Exit the program
 exit
+
+
 
 c func q
 c data p

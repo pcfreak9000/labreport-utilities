@@ -102,13 +102,12 @@ public class FunctionTablet implements Tablet {
         return "D[" + function + ", " + v + "]";
     }
     
-    @Deprecated
     public String getHeader() {
         return getHeader(function);
     }
     
     private String getHeader(String function) {
-        String f = function.split("=")[0].trim();//FIXME headerless functions
+        String f = function.split("=")[0].trim();
         if (f.contains("(")) {
             f = f.split("(")[0].trim();
         }
@@ -119,6 +118,11 @@ public class FunctionTablet implements Tablet {
         if (!function.contains("=")) {
             return "f = " + function;
         }
+        return function;
+    }
+    
+    @Override
+    public String toString() {
         return function;
     }
 }

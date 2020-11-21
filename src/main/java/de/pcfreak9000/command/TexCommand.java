@@ -19,9 +19,9 @@ package de.pcfreak9000.command;
 import java.util.Arrays;
 
 import de.pcfreak9000.main.FunctionTablet;
+import de.pcfreak9000.main.FunctionTablet.PropagationType;
 import de.pcfreak9000.main.Main;
 import de.pcfreak9000.main.Tablet;
-import de.pcfreak9000.main.FunctionTablet.PropagationType;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;

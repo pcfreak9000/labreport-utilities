@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>labreport-utilities</groupId>
 	<artifactId>labreport-utilities</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>labreport-utilities</name>
 	<packaging>jar</packaging>
 

@@ -21,33 +21,39 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "create", aliases = "c", description = "Creates a tablet of the specified type")
-public class CreateCommand {
+@Command(name = "create", aliases = "c", description = "Creates a tablet of the specified type.")
+public class CreateCommand implements Runnable {
+    
+    private static enum TabletType {
+        Data, Func
+    }
     
     @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC)
     private boolean help;
     
-    @Command(name = "function", aliases = { "func", "f" }, description = "Creates a new function tablet")
-    void createFunctionCommand(
-            @Parameters(paramLabel = "NAME", description = "A name for the new function tablet", index = "0") String name,
-            @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC) boolean help) {
-        if (Main.data.exists(name)) {
-            System.out.println("Cannot create: Name already taken");
-            return;
-        }
-        Main.data.createFunctionTablet(name);
-        System.out.println("Created the function tablet '" + name + "'.");
-    }
+    @Parameters(index = "0", paramLabel = "<TABLET TYPE>", description = "The type of the tablet to create. Valid values: ${COMPLETION-CANDIDATES}")
+    private TabletType tabletType;
     
-    @Command(name = "data", aliases = { "d" }, description = "Creates a new data tablet")
-    void createDataCommand(
-            @Parameters(paramLabel = "NAME", description = "A name for the new data tablet", index = "0") String name,
-            @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC) boolean help) {
+    @Parameters(paramLabel = "<TABLET NAME>", description = "A name for the new tablet", index = "1")
+    private String name;
+    
+    @Override
+    public void run() {
         if (Main.data.exists(name)) {
-            System.out.println("Cannot create: Name already taken");
+            System.out.println("Cannot create tablet '" + name + "': Name already taken");
             return;
         }
-        Main.data.createDataTablet(name);
-        System.out.println("Created the data tablet '" + name + "'.");
+        switch (tabletType) {
+        case Data:
+            Main.data.createDataTablet(name);
+            System.out.println("Created the data tablet '" + name + "'.");
+            break;
+        case Func:
+            Main.data.createFunctionTablet(name);
+            System.out.println("Created the function tablet '" + name + "'.");
+            break;
+        default:
+            throw new IllegalStateException("" + tabletType);
+        }
     }
 }

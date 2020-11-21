@@ -20,19 +20,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.ibm.icu.impl.LocaleDisplayNamesImpl.DataTableType;
-
 import de.pcfreak9000.main.DataTablet;
+import de.pcfreak9000.main.DataTablet.DataUsage;
 import de.pcfreak9000.main.FunctionTablet;
 import de.pcfreak9000.main.FunctionTablet.PropagationType;
 import de.pcfreak9000.main.Main;
 import de.pcfreak9000.main.Tablet;
-import de.pcfreak9000.main.DataTablet.DataUsage;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+
 //TODO DOC support of mathematical expressions in sete; dont use mathematical constants like e or pi as variable, that might confuse the system
-@Command(name = "propagate", aliases = "p", description = "Computes values and errors with given function- and data tablets.")
+@Command(name = "propagate", aliases = "p", description = "Computes values and errors with the given function- and data tablets.")
 public class PropagateCommand implements Runnable {
     
     @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC)
@@ -142,8 +141,6 @@ public class PropagateCommand implements Runnable {
             resultTabletT.setDataUsage(DataUsage.Raw);//Raw should make sense... 
             System.out.println("Wrote results into the tablet '" + resultTablet + "'.");
         }
-        String tmp = funct.getErrorPropFunction(propagationtype);
-        System.out.println(tmp);//TODO cleanup
     }
     
 }

@@ -19,28 +19,28 @@ package de.pcfreak9000.command;
 import java.util.Arrays;
 
 import de.pcfreak9000.main.DataTablet;
+import de.pcfreak9000.main.DataTablet.DataUsage;
 import de.pcfreak9000.main.FunctionTablet;
 import de.pcfreak9000.main.FunctionTablet.PropagationType;
 import de.pcfreak9000.main.Main;
 import de.pcfreak9000.main.Tablet;
-import de.pcfreak9000.main.DataTablet.DataUsage;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "sete", description = "Sets the content of a data tablet directly from the input (manually).")
+@Command(name = "sete", description = "Sets the content of a tablet (function or data) directly from the input (i.e. manually).")
 public class SetEntryCommand implements Runnable {
     
     @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC)
     private boolean help;
     
-    @Parameters(index = "0")
+    @Parameters(index = "0", paramLabel = "<TABLET NAME>", description = "The name of the tablet to set.")
     private String tabletName;
     
-    @Parameters(index = "1")
+    @Parameters(index = "1", paramLabel = "<VALUE>", description = "The value to set. For a function tablet this is a function, for data tablets thats a value or a mathematical expression that evaluates to a value.")
     private String value;
     
-    @Parameters(index = "2..*")
+    @Parameters(index = "2..*", paramLabel = "<PARAM>", description = "For a function tablet, the functions arguments are required. For a data tablet, an error in the form of a value or a mathematical expression that evaluates to a value can be stated, but is optional.")
     private String[] params;
     
     @Override
