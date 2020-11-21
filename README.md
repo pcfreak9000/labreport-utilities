@@ -12,9 +12,10 @@ You can also read the instructions from another file. To use this method, simply
 Data is stored in so called tablets. Currently, there are two types of tablets: Function and Data tablets. 
 Function tablets store mathematical functions and their arguments, data tablets store data in the form of value-error pairs (errors can be 0 of course). 
 Tablets can be created with the ``create`` command. Setting function tablets and single-entry-data-tablets can be done by using the ``sete`` command. 
-Values and errors can be mathematical expressions of the type ``(2+Pi)^3`` when using the ``sete`` command. Reading csv-files can be done by using the ``setf`` command.  
-Excel (or LibreOffice or others) support the export of a csv file. Also, when using the ``print``-command on a data tablet, the output can be pasted into spreadsheet which should recognize the format again.
-Dedicated explanations of the commands can be found when using the help options on a command, e.g. ``prpagate -h``.
+Values and errors can be mathematical expressions of the type ``(2+Pi)^3`` when using the ``sete`` command. Reading csv-files can be done by using the ``setf`` command. In that case, only numbers are allowed.
+Excel (or LibreOffice or others) support the export of csv files. Also, when using the ``print``-command on a data tablet, the output can be pasted into a spreadsheet which should recognize the format (or will ask at least about that).
+Dedicated explanations of the commands can be found when using the help options on a command, e.g. ``prpagate -h``. An overview of all the commands can be found when just typing ``-h``.
+[Example](https://github.com/pcfreak9000/labreport-utilities/blob/main/test.txt)s speak more than a thousand words, i guess.
 
 ## Note
 - Dont use mathematical constants as variables, for example: e or E, I or i, ...
