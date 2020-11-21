@@ -1,5 +1,5 @@
 # labreport-utilities
-labreport-utilities is a small (well...) console java program (for now only) intended to automate error propagation for lab reports (or other stuff).
+labreport-utilities is a console java program (for now only) intended to automate error propagation for lab reports (or other stuff).
 This means reading a function and some data, doing the error propagation, and outputting the results. 
 Supporting functionality, e.g. a way to get the TeX commands from the function or the error propagation is also included.  
 
