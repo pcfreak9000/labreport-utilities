@@ -39,7 +39,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "setf", description = "Sets the content of a data tablet from a file.")
+@Command(name = "setf", description = "Sets the content of a data tablet from a csv-file.")
 public class SetFromFileCommand implements Runnable {
     
     @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC)
@@ -65,7 +65,7 @@ public class SetFromFileCommand implements Runnable {
             "--masd" }, defaultValue = "false", description = "Specify this flag if the mean and the standard deviation of this data set is to be used in calculations instead of doing a computation per individual value.")
     private boolean dataUsageMasd;//masd=Mean and Standard Deviation
     
-    @Parameters(paramLabel = "<FILE>", description = "The file from which the tablet is to be filled.", index = "1")
+    @Parameters(paramLabel = "<FILE>", description = "The csv-file from which the tablet is to be filled.", index = "1")
     private Path filepath;
     
     @Parameters(paramLabel = "<TABLET_NAME>", description = "The tablet that is to be filled.", index = "0")
@@ -107,7 +107,7 @@ public class SetFromFileCommand implements Runnable {
                 return;
             }
             values.add(value);
-            String error = entry[errorColumn];//errorColumn == -1 -> error is zero?
+            String error = errorColumn == -1 ? "0" : entry[errorColumn];
             error = error.replace(',', '.');
             if (!error.matches(Main.SUPPORTED_NUMBER_FORMAT_REGEX)) {
                 System.out.println("Cell is not matching the supported number format: '" + value + "'");

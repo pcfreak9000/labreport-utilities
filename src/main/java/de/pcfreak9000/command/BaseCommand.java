@@ -37,7 +37,7 @@ public class BaseCommand {
     
     @Command(name = "delete", description = "Deletes a tablet")
     void deleteTablet(
-            @Parameters(paramLabel = "NAME", description = "The name of the tablet that is to be deleted", index = "0") String name,
+            @Parameters(paramLabel = "<NAME>", description = "The name of the tablet that is to be deleted", index = "0") String name,
             @Option(names = { "-h", "--help" }, usageHelp = true, description = HELP_DESC) boolean help) {
         if (!Main.data.exists(name)) {
             System.out.println("Cannot delete: No such tablet");
