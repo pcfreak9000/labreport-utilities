@@ -15,9 +15,9 @@ c data result
 
 %Setting the content of the tablets
 sete kappa "k = (a-b)/(a-c)" a b c
-setf pa v8_stuff.csv -o=2 -v=2 -e=3 -c=7
-setf pb v8_stuff.csv -o=2 -v=4 -e=5 -c=7
-setf pc v8_stuff.csv -o=2 -v=6 -e=7 -c=7 
+setf pa example_data.csv -o=2 -v=2 -e=3 -c=7
+setf pb example_data.csv -o=2 -v=4 -e=5 -c=7
+setf pc example_data.csv -o=2 -v=6 -e=7 -c=7 
 
 %Calculate the result
 propagate kappa -r=result -p a=pa b=pb c=pc
@@ -57,28 +57,3 @@ propagate -p fun g=g
 tex fun linear g
 exit
 
-
-c func kopp
-c data x
-c data t
-c data result
-sete x 0.68172 0.03
-sete t 0.62928 0.01
-sete kopp "k = (X^2-t^2)/(X^2+t^2)" X t
-propagate -p kopp X=x t=t
-tex kopp gaussian X t
-exit
-
-c func schmelz
-c data W
-c data V
-c data m
-c data K
-c data result
-sete W 5524 1140
-sete V 1767 91
-sete m "0.4635-0.4566" "0.0001+0.0001"
-sete K 0.018 0
-sete schmelz "Q = (W-V)/(m/K)" W V m K
-prop schmelz result W=W V=V m=m K=K
-exit

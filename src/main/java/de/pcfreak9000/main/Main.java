@@ -74,6 +74,9 @@ public class Main {
                 String line = scan.nextLine().trim();
                 String[] parseResult = parse(line);
                 if (parseResult == null || parseResult.length == 0) {
+                    if (consoleInput) {
+                        System.out.print(">> ");
+                    }
                     continue;
                 }
                 commandline.execute(parseResult);
