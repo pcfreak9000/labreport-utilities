@@ -27,7 +27,9 @@ import de.pcfreak9000.main.Tablet;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-
+//TODO implement a logger like in the omnikryptecengine, how does that work with picocli? colors?
+//TODO properly read csv files, and also write them
+//TODO better error handling
 @Command(name = "sete", description = "Sets the content of a tablet (function or data) directly from the input (i.e. manually).")
 public class SetEntryCommand implements Runnable {
     

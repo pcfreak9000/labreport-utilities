@@ -96,7 +96,7 @@ public class PropagateCommand implements Runnable {
         for (int i = 0; i < fargs.length; i++) {
             DataTablet dt = (DataTablet) Main.data.getTablet(tabletmap.get(fargs[i]));
             if (dt.getDataUsage() == DataUsage.Raw) {
-                if (elementCountT != null && elementCountT.getLength() != dt.getLength()) {
+                if (elementCountT != null && elementCountT.getLength() != dt.getLength()) {//FIXME  what about raw single values that are to be used all the time?
                     System.out.println("Amount of rows not matching! Expected: " + elementCountT.getLength() + "('"
                             + countName + "'), actual: " + dt.getLength() + "('" + tabletmap.get(fargs[i]) + "')");
                     return;
