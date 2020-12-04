@@ -17,6 +17,7 @@
 package de.pcfreak9000.command;
 
 import java.util.Arrays;
+import java.util.concurrent.Callable;
 
 import de.pcfreak9000.main.FunctionTablet;
 import de.pcfreak9000.main.FunctionTablet.PropagationType;
@@ -27,7 +28,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "tex", description = "Prints the tex expression of either a function or its error propagation.")
-public class TexCommand implements Runnable {
+public class TexCommand implements Callable<Integer> {
     
     @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC)
     private boolean help;
@@ -44,15 +45,15 @@ public class TexCommand implements Runnable {
     private String functionTablet;
     
     @Override
-    public void run() {
+    public Integer call() {
         if (!Main.data.exists(functionTablet)) {
-            System.out.println("Function tablet '" + functionTablet + "' does not exist.");
-            return;
+            System.err.println("Function tablet '" + functionTablet + "' does not exist.");
+            return Main.CODE_ERROR;
         }
         Tablet ta = Main.data.getTablet(functionTablet);
         if (!(ta instanceof FunctionTablet)) {
-            System.out.println("Tablet '" + functionTablet + "' is not a function tablet.");
-            return;
+            System.err.println("Tablet '" + functionTablet + "' is not a function tablet.");
+            return Main.CODE_ERROR;
         }
         FunctionTablet function = (FunctionTablet) ta;
         if (propType == null) {
@@ -70,6 +71,7 @@ public class TexCommand implements Runnable {
             System.out.println("TeXForm of the error propagation of the function " + function.getFunction()
                     + " concerning the variables " + Arrays.toString(variables) + ": " + texString.replace("^{1}", ""));//The fuck
         }
+        return Main.CODE_NORMAL;
     }
     
 }

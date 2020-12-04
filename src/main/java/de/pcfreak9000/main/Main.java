@@ -17,10 +17,8 @@
 package de.pcfreak9000.main;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
@@ -32,12 +30,18 @@ import org.matheclipse.core.eval.ExprEvaluator;
 
 import de.pcfreak9000.command.BaseCommand;
 import picocli.CommandLine;
+import picocli.CommandLine.ParameterException;
 
 public class Main {
+    
+    public static final int CODE_NORMAL = 0;
+    public static final int CODE_EXIT = 4;
+    public static final int CODE_ERROR = 5;
     
     public static final String SUPPORTED_NUMBER_FORMAT_REGEX = "\\d+(?:[,.]\\d+)|\\d+";
     private static ExprEvaluator EXPRESSION_EVALUATOR;
     private static CommandLine commandline;
+    public static final Tablets data = new Tablets();
     
     public static ExprEvaluator evaluator() {
         if (EXPRESSION_EVALUATOR == null) {
@@ -51,13 +55,11 @@ public class Main {
         return EXPRESSION_EVALUATOR;
     }
     
-    public static final Tablets data = new Tablets();
-    
     public static void main(String[] args) {
         evaluator();//Initializing the evaluator takes a second or two
         commandline = new CommandLine(new BaseCommand());
         commandline.setCaseInsensitiveEnumValuesAllowed(true);
-        commandline.setErr(new PrintWriter(System.out));
+        //commandline.setErr(new PrintWriter(System.err));
         if (args.length > 0 && !args[0].isEmpty()) {
             parseFile(args[0]);
         } else {
@@ -79,35 +81,44 @@ public class Main {
         }
     }
     
-    public static void parseFile(String name) {
+    public static int parseFile(String name) {
         System.out.println("Trying to read instructions from the file \"" + name + "\"...");
         try (Scanner scan = new Scanner(new FileReader(new File(name)))) {
-            readScannerLines(scan, false);
+            return readScannerLines(scan, false);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+        return CODE_ERROR;
     }
     
-    private static void readScannerLines(Scanner scan, boolean print) {
+    private static int readScannerLines(Scanner scan, boolean consoleMode) {
         while (scan.hasNextLine()) {
             String line = scan.nextLine().trim();
             String[] parseResult = parse(line);
             if (parseResult == null || parseResult.length == 0) {
-                if (print) {
+                if (consoleMode) {
                     System.out.print(">> ");
                 }
                 continue;
             }
-            commandline.execute(parseResult);
-            if (print) {
+            int x = commandline.execute(parseResult);
+            if (x == CODE_EXIT) {
+                //1 means this loop should be exited regularly
+                break;
+            } else if ((x == CODE_ERROR || x == CommandLine.ExitCode.SOFTWARE || x == CommandLine.ExitCode.USAGE)
+                    && !consoleMode) {
+                return x;
+            }
+            if (consoleMode) {
                 System.out.print(">> ");
             }
         }
+        return Main.CODE_NORMAL;
     }
     
     private static String[] parse(String in) {
         List<String> parts = new ArrayList<>();
-        if (in.startsWith("%")) {//Comment
+        if (in.startsWith("%") || in.startsWith("#")) {//Indicates a comment
             return parts.toArray(String[]::new);
         }
         char[] chars = in.toCharArray();
@@ -142,7 +153,7 @@ public class Main {
             }
         }
         if (inside) {
-            System.out.println("Unclosed '\"'");
+            System.err.println("Unclosed '\"'");
             return null;
         }
         return parts.toArray(String[]::new);

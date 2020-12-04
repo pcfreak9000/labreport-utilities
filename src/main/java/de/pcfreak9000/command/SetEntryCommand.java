@@ -17,6 +17,7 @@
 package de.pcfreak9000.command;
 
 import java.util.Arrays;
+import java.util.concurrent.Callable;
 
 import de.pcfreak9000.main.DataTablet;
 import de.pcfreak9000.main.DataTablet.DataUsage;
@@ -27,11 +28,12 @@ import de.pcfreak9000.main.Tablet;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+
 //TODO implement a logger like in the omnikryptecengine, how does that work with picocli? colors?
 //TODO properly read csv files, and also write them
 //TODO better error handling
 @Command(name = "sete", description = "Sets the content of a tablet (function or data) directly from the input (i.e. manually).")
-public class SetEntryCommand implements Runnable {
+public class SetEntryCommand implements Callable<Integer> {
     
     @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC)
     private boolean help;
@@ -46,22 +48,23 @@ public class SetEntryCommand implements Runnable {
     private String[] params;
     
     @Override
-    public void run() {
+    public Integer call() {
         if (!Main.data.exists(tabletName)) {
-            System.out.println("Cannot set entry: No such tablet: '" + tabletName + "'");
-            return;
+            System.err.println("Cannot set entry: No such tablet: '" + tabletName + "'");
+            return Main.CODE_ERROR;
         }
         Tablet ta = Main.data.getTablet(tabletName);
         if (ta instanceof DataTablet) {
             DataTablet tab = (DataTablet) ta;
-            setDataTablet(tab);
+            return setDataTablet(tab);
         } else if (ta instanceof FunctionTablet) {
             FunctionTablet form = (FunctionTablet) ta;
-            setFunctionTablet(form);
+            return setFunctionTablet(form);
         }
+        return Main.CODE_ERROR;
     }
     
-    private void setDataTablet(DataTablet tab) {
+    private int setDataTablet(DataTablet tab) {
         String err = params.length == 0 ? "0" : params[0];
         tab.setValues(value);
         tab.setErrors(err);
@@ -69,12 +72,14 @@ public class SetEntryCommand implements Runnable {
         tab.setPreferredPropagation(PropagationType.Linear);
         System.out.println(
                 "Set the value of tablet '" + tabletName + "' to '" + value + "' and the error to '" + err + "'.");
+        return Main.CODE_NORMAL;
     }
     
-    private void setFunctionTablet(FunctionTablet form) {
+    private int setFunctionTablet(FunctionTablet form) {
         form.setFunction(value);
         form.setArgs(params);
         System.out.println("Set the function of tablet '" + tabletName + "' to '" + value
                 + "' and the arguments of the function are " + Arrays.toString(params));
+        return Main.CODE_NORMAL;
     }
 }

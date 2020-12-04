@@ -19,6 +19,7 @@ package de.pcfreak9000.command;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import de.pcfreak9000.main.DataTablet;
 import de.pcfreak9000.main.DataTablet.DataUsage;
@@ -30,9 +31,9 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-//TODO DOC support of mathematical expressions in sete; dont use mathematical constants like e or pi as variable, that might confuse the system
+//TODO DOCument support of mathematical expressions in sete; dont use mathematical constants like e or pi as variable, that might confuse the system
 @Command(name = "propagate", aliases = "p", description = "Computes values and errors with the given function- and data tablets.")
-public class PropagateCommand implements Runnable {
+public class PropagateCommand implements Callable<Integer> {
     
     @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC)
     private boolean help;
@@ -59,34 +60,34 @@ public class PropagateCommand implements Runnable {
     //TODO only propagate errors from vars who actually have an error
     
     @Override
-    public void run() {
+    public Integer call() {
         if (!Main.data.exists(functionTablet)) {
-            System.out.println("Tablet '" + functionTablet + "' does not exist.");
-            return;
+            System.err.println("Tablet '" + functionTablet + "' does not exist.");
+            return Main.CODE_ERROR;
         }
         Tablet ta = Main.data.getTablet(functionTablet);
         if (!(ta instanceof FunctionTablet)) {
-            System.out.println("Tablet '" + functionTablet + "' is not a function tablet.");
-            return;
+            System.err.println("Tablet '" + functionTablet + "' is not a function tablet.");
+            return Main.CODE_ERROR;
         }
         DataTablet resultTabletT = null;
         if (resultTablet != null) {
             if (!Main.data.exists(resultTablet)) {
-                System.out.println("Data tablet '" + resultTablet + "' does not exist.");
-                return;
+                System.err.println("Data tablet '" + resultTablet + "' does not exist.");
+                return Main.CODE_ERROR;
             }
             Tablet rt = Main.data.getTablet(resultTablet);
             if (!(rt instanceof DataTablet)) {
-                System.out.println("Tablet '" + resultTablet + "' is not a data tablet.");
-                return;
+                System.err.println("Tablet '" + resultTablet + "' is not a data tablet.");
+                return Main.CODE_ERROR;
             }
             resultTabletT = (DataTablet) rt;
         }
         FunctionTablet funct = (FunctionTablet) ta;
         String[] fargs = funct.getArgs();
         if (fargs.length != 0 && (tabletmap == null || tabletmap.size() != fargs.length)) {
-            System.out.println("Number of function arguments and tablets not matching or the arguments are malformed");
-            return;
+            System.err.println("Number of function arguments and tablets not matching or the arguments are malformed");
+            return Main.CODE_ERROR;
         }
         //Prepare arguments, determine the propagation type
         PropagationType propagationtype = PropagationType.Linear;
@@ -97,9 +98,9 @@ public class PropagateCommand implements Runnable {
             DataTablet dt = (DataTablet) Main.data.getTablet(tabletmap.get(fargs[i]));
             if (dt.getLength() > 1 && dt.getDataUsage() == DataUsage.Raw) {
                 if (elementCountT != null && elementCountT.getLength() != dt.getLength()) {
-                    System.out.println("Amount of rows not matching! Expected: " + elementCountT.getLength() + "('"
+                    System.err.println("Amount of rows not matching! Expected: " + elementCountT.getLength() + "('"
                             + countName + "'), actual: " + dt.getLength() + "('" + tabletmap.get(fargs[i]) + "')");
-                    return;
+                    return Main.CODE_ERROR;
                 }
                 elementCountT = dt;
                 countName = fargs[i];
@@ -141,6 +142,7 @@ public class PropagateCommand implements Runnable {
             resultTabletT.setDataUsage(DataUsage.Raw);//Raw should make sense... 
             System.out.println("Wrote results into the tablet '" + resultTablet + "'.");
         }
+        return Main.CODE_NORMAL;
     }
     
 }
