@@ -37,7 +37,7 @@ public class FunctionTablet implements Tablet {
         }
         
         public PropagationType compare(PropagationType pt) {
-            switch (pt) {//FIXME nullptrexc because of previous errors
+            switch (pt) {
             case Gaussian:
                 return Gaussian;
             case Linear:

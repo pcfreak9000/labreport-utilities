@@ -27,7 +27,7 @@ public class DataTablet implements Tablet {
     private String[] values;
     private String[] errors;
     
-    private PropagationType preferredPropagation;
+    private PropagationType preferredPropagation = PropagationType.Linear;
     private DataUsage dataUsage;
     
     public void setValues(String... values) {
@@ -98,7 +98,7 @@ public class DataTablet implements Tablet {
                 return errors[index];
             }
         } else {
-            return null;//XXX Instead return "0"? Imagine a file not giving any errors...
+            return "0";
         }
     }
     

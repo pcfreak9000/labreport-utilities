@@ -74,12 +74,11 @@ public class SetFromFileCommand implements Runnable {
     @Override
     public void run() {
         File file = filepath.toFile();
-        if (!file.exists()) {//TODO does picocli solve this already?
+        if (!file.exists()) {
             System.out.println("File does not exist: '" + file.toString() + "'");
             return;
         }
         List<String[]> entries;
-        //TODO maybe automatically find out about the tables contents or something
         try (Reader reader = Files.newBufferedReader(filepath)) {
             CSVParser csvParser = new CSVParserBuilder().withFieldAsNull(CSVReaderNullFieldIndicator.BOTH)
                     .withIgnoreLeadingWhiteSpace(true).withStrictQuotes(false).build();
