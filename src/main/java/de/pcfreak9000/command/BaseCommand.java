@@ -47,4 +47,11 @@ public class BaseCommand {
         System.out.println("Deleted the tablet '" + name + "'.");
     }
     
+    @Command(name = "exec", description = "Reads instructions from a file")
+    void readFile(
+            @Parameters(paramLabel = "<FILE_NAME>", description = "Executes the instructions from a file", index = "0") String fileName,
+            @Option(names = { "-h", "--help" }, usageHelp = true, description = HELP_DESC) boolean help) {
+        Main.parseFile(fileName);
+    }
+    
 }

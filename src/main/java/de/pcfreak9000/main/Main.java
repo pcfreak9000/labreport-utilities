@@ -16,10 +16,14 @@
  *******************************************************************************/
 package de.pcfreak9000.main;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -33,6 +37,7 @@ public class Main {
     
     public static final String SUPPORTED_NUMBER_FORMAT_REGEX = "\\d+(?:[,.]\\d+)|\\d+";
     private static ExprEvaluator EXPRESSION_EVALUATOR;
+    private static CommandLine commandline;
     
     public static ExprEvaluator evaluator() {
         if (EXPRESSION_EVALUATOR == null) {
@@ -50,39 +55,52 @@ public class Main {
     
     public static void main(String[] args) {
         evaluator();//Initializing the evaluator takes a second or two
-        boolean consoleInput = true;
-        InputStream in = System.in;
-        if (args.length > 0) {
-            try {
-                in = new FileInputStream(args[0]);
-                consoleInput = false;
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-        if (consoleInput) {
-            System.out.println("Ready. Type -h for help.");
-            System.out.print(">> ");
-        } else {
-            System.out.println("Reading instructions from the file \"" + args[0] + "\"");
-        }
-        CommandLine commandline = new CommandLine(new BaseCommand());
+        commandline = new CommandLine(new BaseCommand());
         commandline.setCaseInsensitiveEnumValuesAllowed(true);
         commandline.setErr(new PrintWriter(System.out));
-        try (Scanner scan = new Scanner(in)) {
-            while (scan.hasNextLine()) {
-                String line = scan.nextLine().trim();
-                String[] parseResult = parse(line);
-                if (parseResult == null || parseResult.length == 0) {
-                    if (consoleInput) {
-                        System.out.print(">> ");
-                    }
-                    continue;
-                }
-                commandline.execute(parseResult);
-                if (consoleInput) {
+        if (args.length > 0 && !args[0].isEmpty()) {
+            parseFile(args[0]);
+        } else {
+            System.out.println("Ready. Type -h for help.");
+            System.out.print(">> ");
+            parseConsole();
+        }
+    }
+    
+    private static void parseConsole() {
+        Reader reader;
+        if (System.console() != null) {
+            reader = System.console().reader();
+        } else {
+            reader = new InputStreamReader(System.in);
+        }
+        try (Scanner scan = new Scanner(reader)) {
+            readScannerLines(scan, true);
+        }
+    }
+    
+    public static void parseFile(String name) {
+        System.out.println("Trying to read instructions from the file \"" + name + "\"...");
+        try (Scanner scan = new Scanner(new FileReader(new File(name)))) {
+            readScannerLines(scan, false);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private static void readScannerLines(Scanner scan, boolean print) {
+        while (scan.hasNextLine()) {
+            String line = scan.nextLine().trim();
+            String[] parseResult = parse(line);
+            if (parseResult == null || parseResult.length == 0) {
+                if (print) {
                     System.out.print(">> ");
                 }
+                continue;
+            }
+            commandline.execute(parseResult);
+            if (print) {
+                System.out.print(">> ");
             }
         }
     }
