@@ -43,6 +43,10 @@ public class SetCommand implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
         if (functionArgs != null) {
+            if (errors != null) {
+                System.err.println("Ambiguous command usage: Data or Function?");
+                return Main.CODE_ERROR;
+            }
             if (!Main.data.exists(tabletName)) {
                 System.out.println("Created the function tablet '" + tabletName + "'.");
                 Main.data.createFunctionTablet(tabletName);
