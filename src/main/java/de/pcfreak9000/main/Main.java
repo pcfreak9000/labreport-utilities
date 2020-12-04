@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +29,6 @@ import org.matheclipse.core.eval.ExprEvaluator;
 
 import de.pcfreak9000.command.BaseCommand;
 import picocli.CommandLine;
-import picocli.CommandLine.ParameterException;
 
 public class Main {
     

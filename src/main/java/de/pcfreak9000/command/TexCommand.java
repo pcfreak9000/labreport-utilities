@@ -38,7 +38,7 @@ public class TexCommand implements Callable<Integer> {
     private PropagationType propType;
     
     @Option(names = { "-v",
-            "--variable" }, paramLabel = "<variable>", description = "Specify the variables to perform the propagation on. If no propagation is specified, these options are ignored.")
+            "--variable" }, paramLabel = "<variable>", description = "Specify the variables to perform the propagation on. If no propagation is specified, these options are ignored. If these options are left empty, the result will contain all function arguments.", split = ";")
     private String[] variables;
     
     @Parameters(index = "0", paramLabel = "<FUNCTION_TABLET>", description = "A function tablet to perform the operations on.")

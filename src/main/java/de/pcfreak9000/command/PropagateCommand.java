@@ -73,8 +73,8 @@ public class PropagateCommand implements Callable<Integer> {
         DataTablet resultTabletT = null;
         if (resultTablet != null) {
             if (!Main.data.exists(resultTablet)) {
-                System.err.println("Data tablet '" + resultTablet + "' does not exist.");
-                return Main.CODE_ERROR;
+                System.out.println("Created the data tablet '" + resultTablet + "'.");
+                Main.data.createDataTablet(resultTablet);
             }
             Tablet rt = Main.data.getTablet(resultTablet);
             if (!(rt instanceof DataTablet)) {

@@ -22,7 +22,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "", subcommands = { CreateCommand.class, SetFromFileCommand.class, SetEntryCommand.class,
-        PropagateCommand.class, TexCommand.class, PrintTabletCommand.class })
+        PropagateCommand.class, TexCommand.class, PrintTabletCommand.class, SetCommand.class })
 public class BaseCommand {
     
     public static final String HELP_DESC = "display this help message";

@@ -90,6 +90,10 @@ public class SetFromFileCommand implements Callable<Integer> {
             System.err.println("Error while reading the file: " + e);
             return Main.CODE_ERROR;
         }
+        if (!Main.data.exists(tabletName)) {
+            System.out.println("Created the data tablet '" + tabletName + "'.");
+            Main.data.createDataTablet(tabletName);
+        }
         Tablet ta = Main.data.getTablet(tabletName);
         if (!(ta instanceof DataTablet)) {
             System.err.println("Cannot execute: Tablet '" + tabletName + "' is not a data tablet");
@@ -122,7 +126,7 @@ public class SetFromFileCommand implements Callable<Integer> {
         dt.setValues(values.toArray(String[]::new));
         dt.setErrors(errors.toArray(String[]::new));
         if (dataUsageMasd) {
-            dt.setDataUsage(DataUsage.MeanAndStandardDeviation);
+            dt.setDataUsage(DataUsage.MSD);
         } else {
             dt.setDataUsage(DataUsage.Raw);
         }
