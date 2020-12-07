@@ -1,3 +1,14 @@
+c func N
+c data a
+c data b
+c data c
+sete N "1.2566*10^(-6)*(a-c)/b" a b c
+sete c 550 5
+sete b 0.578 0.005
+sete a 813 8
+p -p N a=a b=b c=c
+exit
+
 %Show the main help message
 -h
 

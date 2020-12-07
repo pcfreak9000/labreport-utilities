@@ -95,7 +95,7 @@ public class FunctionTablet implements Tablet {
         default:
             throw new IllegalStateException(type + "");
         }
-        return Main.evaluator().eval(b.toString());
+        return Main.ev2.eval(b.toString());//FIXME Df being negative, String vs Expr problems, etc. See the current test 
     }
     
     private String getPartial(String v) {

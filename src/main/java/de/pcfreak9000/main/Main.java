@@ -34,6 +34,8 @@ public class Main {
     public static final String SUPPORTED_NUMBER_FORMAT_REGEX = "\\d+(?:[,.]\\d+)|\\d+";
     private static ExprEvaluator EXPRESSION_EVALUATOR;
     
+    public static ExprEvaluator ev2 = new ExprEvaluator();
+    
     public static ExprEvaluator evaluator() {
         if (EXPRESSION_EVALUATOR == null) {
             System.out.println("Initializing...");
