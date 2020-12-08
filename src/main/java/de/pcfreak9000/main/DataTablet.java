@@ -21,7 +21,7 @@ import de.pcfreak9000.main.FunctionTablet.PropagationType;
 public class DataTablet implements Tablet {
     
     public static enum DataUsage {
-        Raw, MeanAndStandardDeviation
+        Raw, MSD/* Mean and standard deviation */
     }
     
     private String[] values;
@@ -92,10 +92,10 @@ public class DataTablet implements Tablet {
     
     public String getError(int index) {
         if (errors != null) {
-            if (getDataUsage() == DataUsage.MeanAndStandardDeviation) {
+            if (getDataUsage() == DataUsage.MSD) {
                 return Main.evaluator().eval(createStandardDeviationEvalString()).toString();
             } else {
-                return errors[index];
+                return errors.length == 1 ? errors[0] : errors[index];
             }
         } else {
             return "0";
@@ -104,7 +104,7 @@ public class DataTablet implements Tablet {
     
     public String getValue(int index) {
         if (values != null) {
-            if (getDataUsage() == DataUsage.MeanAndStandardDeviation) {
+            if (getDataUsage() == DataUsage.MSD) {
                 return Main.evaluator().eval(createMeanEvalString()).toString();
             } else {
                 return values[index];
@@ -115,7 +115,7 @@ public class DataTablet implements Tablet {
     }
     
     public String stringRepresentation() {
-        String s = "Value; Error\n";
+        String s = "Format: Value; Error\n";
         if (values != null) {
             for (int i = 0; i < values.length; i++) {
                 s += values[i] + "; " + errors[i] + "\n";

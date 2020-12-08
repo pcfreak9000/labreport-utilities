@@ -16,6 +16,8 @@
  *******************************************************************************/
 package de.pcfreak9000.command;
 
+import java.util.concurrent.Callable;
+
 import de.pcfreak9000.main.DataTablet;
 import de.pcfreak9000.main.FunctionTablet;
 import de.pcfreak9000.main.Main;
@@ -25,7 +27,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "print", description = "A simple command to print tablets.")
-public class PrintTabletCommand implements Runnable {
+public class PrintTabletCommand implements Callable<Integer> {
     
     @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC)
     private boolean help;
@@ -34,10 +36,10 @@ public class PrintTabletCommand implements Runnable {
     private String tabletName;
     
     @Override
-    public void run() {
+    public Integer call() {
         if (!Main.data.exists(tabletName)) {
-            System.out.println("Tablet '" + tabletName + "' does not exist.");
-            return;
+            System.err.println("Tablet '" + tabletName + "' does not exist.");
+            return Main.CODE_ERROR;
         }
         Tablet tablet = Main.data.getTablet(tabletName);
         if (tablet instanceof DataTablet) {
@@ -50,6 +52,7 @@ public class PrintTabletCommand implements Runnable {
         } else {
             System.out.println(tablet.toString());
         }
+        return Main.CODE_NORMAL;
     }
     
 }

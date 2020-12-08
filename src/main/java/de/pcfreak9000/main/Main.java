@@ -16,10 +16,11 @@
  *******************************************************************************/
 package de.pcfreak9000.main;
 
-import java.io.FileInputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.PrintWriter;
+import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -31,8 +32,14 @@ import picocli.CommandLine;
 
 public class Main {
     
+    public static final int CODE_NORMAL = 0;
+    public static final int CODE_EXIT = 4;
+    public static final int CODE_ERROR = 5;
+    
     public static final String SUPPORTED_NUMBER_FORMAT_REGEX = "\\d+(?:[,.]\\d+)|\\d+";
     private static ExprEvaluator EXPRESSION_EVALUATOR;
+    private static CommandLine commandline;
+    public static final Tablets data = new Tablets();
     
     public static ExprEvaluator ev2 = new ExprEvaluator();
     
@@ -48,50 +55,70 @@ public class Main {
         return EXPRESSION_EVALUATOR;
     }
     
-    public static final Tablets data = new Tablets();
-    
     public static void main(String[] args) {
         evaluator();//Initializing the evaluator takes a second or two
-        boolean consoleInput = true;
-        InputStream in = System.in;
-        if (args.length > 0) {
-            try {
-                in = new FileInputStream(args[0]);
-                consoleInput = false;
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-        if (consoleInput) {
+        commandline = new CommandLine(new BaseCommand());
+        commandline.setCaseInsensitiveEnumValuesAllowed(true);
+        //commandline.setErr(new PrintWriter(System.err));
+        if (args.length > 0 && !args[0].isEmpty()) {
+            parseFile(args[0]);
+        } else {
             System.out.println("Ready. Type -h for help.");
             System.out.print(">> ");
-        } else {
-            System.out.println("Reading instructions from the file \"" + args[0] + "\"");
+            parseConsole();
         }
-        CommandLine commandline = new CommandLine(new BaseCommand());
-        commandline.setCaseInsensitiveEnumValuesAllowed(true);
-        commandline.setErr(new PrintWriter(System.out));
-        try (Scanner scan = new Scanner(in)) {
-            while (scan.hasNextLine()) {
-                String line = scan.nextLine().trim();
-                String[] parseResult = parse(line);
-                if (parseResult == null || parseResult.length == 0) {
-                    if (consoleInput) {
-                        System.out.print(">> ");
-                    }
-                    continue;
-                }
-                commandline.execute(parseResult);
-                if (consoleInput) {
+    }
+    
+    private static void parseConsole() {
+        Reader reader;
+        if (System.console() != null) {
+            reader = System.console().reader();
+        } else {
+            reader = new InputStreamReader(System.in);
+        }
+        try (Scanner scan = new Scanner(reader)) {
+            readScannerLines(scan, true);
+        }
+    }
+    
+    public static int parseFile(String name) {
+        System.out.println("Trying to read instructions from the file \"" + name + "\"...");
+        try (Scanner scan = new Scanner(new FileReader(new File(name)))) {
+            return readScannerLines(scan, false);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return CODE_ERROR;
+    }
+    
+    private static int readScannerLines(Scanner scan, boolean consoleMode) {
+        while (scan.hasNextLine()) {
+            String line = scan.nextLine().trim();
+            String[] parseResult = parse(line);
+            if (parseResult == null || parseResult.length == 0) {
+                if (consoleMode) {
                     System.out.print(">> ");
                 }
+                continue;
+            }
+            int x = commandline.execute(parseResult);
+            if (x == CODE_EXIT) {
+                //1 means this loop should be exited regularly
+                break;
+            } else if ((x == CODE_ERROR || x == CommandLine.ExitCode.SOFTWARE || x == CommandLine.ExitCode.USAGE)
+                    && !consoleMode) {
+                return x;
+            }
+            if (consoleMode) {
+                System.out.print(">> ");
             }
         }
+        return Main.CODE_NORMAL;
     }
     
     private static String[] parse(String in) {
         List<String> parts = new ArrayList<>();
-        if (in.startsWith("%")) {//Comment
+        if (in.startsWith("%") || in.startsWith("#")) {//Indicates a comment
             return parts.toArray(String[]::new);
         }
         char[] chars = in.toCharArray();
@@ -126,7 +153,7 @@ public class Main {
             }
         }
         if (inside) {
-            System.out.println("Unclosed '\"'");
+            System.err.println("Unclosed '\"'");
             return null;
         }
         return parts.toArray(String[]::new);

@@ -22,7 +22,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "", subcommands = { CreateCommand.class, SetFromFileCommand.class, SetEntryCommand.class,
-        PropagateCommand.class, TexCommand.class, PrintTabletCommand.class })
+        PropagateCommand.class, TexCommand.class, PrintTabletCommand.class, SetCommand.class })
 public class BaseCommand {
     
     public static final String HELP_DESC = "display this help message";
@@ -31,20 +31,28 @@ public class BaseCommand {
     private boolean help;
     
     @Command(name = "exit", description = "Exits the program")
-    void exitCommand() {
-        System.exit(0);
+    int exitCommand() {
+        return Main.CODE_EXIT;//Tell the parser to leave the current Scanner loop
     }
     
     @Command(name = "delete", description = "Deletes a tablet")
-    void deleteTablet(
+    int deleteTablet(
             @Parameters(paramLabel = "<NAME>", description = "The name of the tablet that is to be deleted", index = "0") String name,
             @Option(names = { "-h", "--help" }, usageHelp = true, description = HELP_DESC) boolean help) {
         if (!Main.data.exists(name)) {
-            System.out.println("Cannot delete: No such tablet");
-            return;
+            System.err.println("Cannot delete: No such tablet");
+            return Main.CODE_ERROR;
         }
         Main.data.deleteTablet(name);
         System.out.println("Deleted the tablet '" + name + "'.");
+        return Main.CODE_NORMAL;
+    }
+    
+    @Command(name = "exec", description = "Reads instructions from a file")
+    int readFile(
+            @Parameters(paramLabel = "<FILE_NAME>", description = "Executes the instructions from a file", index = "0") String fileName,
+            @Option(names = { "-h", "--help" }, usageHelp = true, description = HELP_DESC) boolean help) {
+        return Main.parseFile(fileName);
     }
     
 }

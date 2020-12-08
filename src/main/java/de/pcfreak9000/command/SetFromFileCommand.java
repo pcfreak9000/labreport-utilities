@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
@@ -40,7 +41,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "setf", description = "Sets the content of a data tablet from a csv-file.")
-public class SetFromFileCommand implements Runnable {
+public class SetFromFileCommand implements Callable<Integer> {
     
     @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC)
     private boolean help;
@@ -72,11 +73,11 @@ public class SetFromFileCommand implements Runnable {
     private String tabletName;
     
     @Override
-    public void run() {
+    public Integer call() {
         File file = filepath.toFile();
         if (!file.exists()) {
-            System.out.println("File does not exist: '" + file.toString() + "'");
-            return;
+            System.err.println("File does not exist: '" + file.toString() + "'");
+            return Main.CODE_ERROR;
         }
         List<String[]> entries;
         try (Reader reader = Files.newBufferedReader(filepath)) {
@@ -86,13 +87,17 @@ public class SetFromFileCommand implements Runnable {
                     .build();
             entries = csvReader.readAll();
         } catch (IOException e) {
-            System.out.println("Error while reading the file: " + e);
-            return;
+            System.err.println("Error while reading the file: " + e);
+            return Main.CODE_ERROR;
+        }
+        if (!Main.data.exists(tabletName)) {
+            System.out.println("Created the data tablet '" + tabletName + "'.");
+            Main.data.createDataTablet(tabletName);
         }
         Tablet ta = Main.data.getTablet(tabletName);
         if (!(ta instanceof DataTablet)) {
-            System.out.println("Cannot execute: Tablet '" + tabletName + "' is not a data tablet");
-            return;
+            System.err.println("Cannot execute: Tablet '" + tabletName + "' is not a data tablet");
+            return Main.CODE_ERROR;
         }
         DataTablet dt = (DataTablet) ta;
         List<String> values = new ArrayList<>();
@@ -102,15 +107,15 @@ public class SetFromFileCommand implements Runnable {
             String value = entry[valueColumn];
             value = value.replace(',', '.');
             if (!value.matches(Main.SUPPORTED_NUMBER_FORMAT_REGEX)) {//Put this in a method!!
-                System.out.println("Cell is not matching the supported number format: '" + value + "'");
-                return;
+                System.err.println("Cell is not matching the supported number format: '" + value + "'");
+                return Main.CODE_ERROR;
             }
             values.add(value);
             String error = errorColumn == -1 ? "0" : entry[errorColumn];
             error = error.replace(',', '.');
             if (!error.matches(Main.SUPPORTED_NUMBER_FORMAT_REGEX)) {
-                System.out.println("Cell is not matching the supported number format: '" + value + "'");
-                return;
+                System.err.println("Cell is not matching the supported number format: '" + value + "'");
+                return Main.CODE_ERROR;
             }
             errors.add(error);
             index++;
@@ -121,11 +126,12 @@ public class SetFromFileCommand implements Runnable {
         dt.setValues(values.toArray(String[]::new));
         dt.setErrors(errors.toArray(String[]::new));
         if (dataUsageMasd) {
-            dt.setDataUsage(DataUsage.MeanAndStandardDeviation);
+            dt.setDataUsage(DataUsage.MSD);
         } else {
             dt.setDataUsage(DataUsage.Raw);
         }
         dt.setPreferredPropagation(PropagationType.get(dt.getDataUsage()));
         System.out.println("Successfully read the file '" + file.toString() + "'");
+        return Main.CODE_NORMAL;
     }
 }

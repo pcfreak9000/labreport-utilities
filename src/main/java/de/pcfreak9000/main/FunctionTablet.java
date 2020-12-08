@@ -27,7 +27,7 @@ public class FunctionTablet implements Tablet {
         
         public static PropagationType get(DataUsage du) {
             switch (du) {
-            case MeanAndStandardDeviation:
+            case MSD:
                 return Gaussian;
             case Raw:
                 return Linear;
