@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import org.matheclipse.core.interfaces.IExpr;
+
 import de.pcfreak9000.main.DataTablet;
 import de.pcfreak9000.main.DataTablet.DataUsage;
 import de.pcfreak9000.main.FunctionTablet;
@@ -106,8 +108,8 @@ public class PropagateCommand implements Callable<Integer> {
                 countName = fargs[i];
                 nonstatargs.add(fargs[i]);
             } else {
-                Main.evaluator().defineVariable(fargs[i], Main.evaluator().eval(dt.getValue(0)));
-                Main.evaluator().defineVariable("D" + fargs[i], Main.evaluator().eval(dt.getError(0)));
+                Main.evaluator().defineVariable(fargs[i], Main.evaluator().parse(dt.getValue(0)));
+                Main.evaluator().defineVariable("D" + fargs[i], Main.evaluator().parse(dt.getError(0)));
             }
             propagationtype = propagationtype.compare(dt.getPreferredPropagation());
         }
@@ -124,14 +126,14 @@ public class PropagateCommand implements Callable<Integer> {
         for (int i = 0; i < iterationCount; i++) {
             for (int j = 0; j < nonstatargs.size(); j++) {
                 DataTablet dt = (DataTablet) Main.data.getTablet(tabletmap.get(nonstatargs.get(j)));
-                Main.evaluator().defineVariable(nonstatargs.get(j), Main.evaluator().eval(dt.getValue(i)));
-                Main.evaluator().defineVariable("D" + nonstatargs.get(j), Main.evaluator().eval(dt.getError(i)));
+                Main.evaluator().defineVariable(nonstatargs.get(j), Main.evaluator().parse(dt.getValue(i)));
+                Main.evaluator().defineVariable("D" + nonstatargs.get(j), Main.evaluator().parse(dt.getError(i)));
             }
-            results[i] = Main.evaluator().eval("N[" + funct.getFunction() + "]").toString();
-            errors[i] = Main.evaluator().eval("N[" + errorprop + "]").toString();
+            results[i] = Main.evaluator().getEvalEngine().evaluate(Main.evaluator().parse("N[" + funct.getFunction() + ", 50]")).toString();
+            errors[i] = Main.evaluator().getEvalEngine().evalWithoutNumericReset(Main.evaluator().parse("N[" + errorprop + ", 50]")).toString();
             if (printresult) {
                 System.out.println(
-                        funct.getHeader() + " = " + results[i] + ", " + "D" + funct.getHeader() + " = " + errors[i]);
+                        "f = " + results[i] + ", " + "Df = " + errors[i]);
             }
         }
         Main.evaluator().clearVariables();//This is important, otherwise stuff might act weird

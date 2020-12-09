@@ -159,13 +159,4 @@ public class Main {
         return parts.toArray(String[]::new);
     }
     
-    //        tmp = MathStuff.EXPRESSION_EVALUATOR.eval(tmp).toString();
-    //        TeXUtilities tex = new TeXUtilities(MathStuff.EXPRESSION_EVALUATOR.getEvalEngine(), true);
-    //        StringWriter wr = new StringWriter();
-    //        tex.toTeX(tmp, wr);
-    //        String texString = wr.toString();
-    //        for (int i = 0; i < vars.length; i++) {
-    //            texString = texString.replace("d" + vars[i], "\\Delta " + vars[i]);
-    //        }
-    //        System.out.println(texString.replace("\\cdot", ""));
 }

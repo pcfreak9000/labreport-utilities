@@ -57,7 +57,7 @@ public class FunctionTablet implements Tablet {
     }
     
     public void setFunction(String function) {
-        this.function = prepareFunction(function);
+        this.function = function;
     }
     
     public String[] getArgs() {
@@ -69,15 +69,14 @@ public class FunctionTablet implements Tablet {
     }
     
     public String getErrorPropFunction(PropagationType type, String... evalVars) {
-        return "D" + getHeader(function) + " = " + calculateErrorPropagation(type, evalVars);
+        return calculateErrorPropagation(type, evalVars).toString();
     }
     
-    private IExpr calculateErrorPropagation(PropagationType type, String... evalVars) {
+    public IExpr calculateErrorPropagation(PropagationType type, String... evalVars) {
         if (evalVars == null || evalVars.length == 0) {
             evalVars = args;
         }
         StringBuilder b = new StringBuilder();
-        b.append("D" + getHeader(function) + " = ");
         switch (type) {
         case Gaussian:
             b.append("Sqrt[");
@@ -100,25 +99,6 @@ public class FunctionTablet implements Tablet {
     
     private String getPartial(String v) {
         return "D[" + function + ", " + v + "]";
-    }
-    
-    public String getHeader() {
-        return getHeader(function);
-    }
-    
-    private String getHeader(String function) {
-        String f = function.split("=")[0].trim();
-        if (f.contains("(")) {
-            f = f.split("(")[0].trim();
-        }
-        return f;
-    }
-    
-    private String prepareFunction(String function) {
-        if (!function.contains("=")) {
-            return "f = " + function;
-        }
-        return function;
     }
     
     @Override

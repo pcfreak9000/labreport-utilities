@@ -1,12 +1,11 @@
-c func N
-c data a
-c data b
-c data c
-sete N "1.2566*10^(-6)*(a-c)/b" a b c
-sete c 550 5
-sete b 0.578 0.005
-sete a 813 8
-p -p N a=a b=b c=c
+set k "(-t/ln(1-(a/u)))/c" -a=t;a;u;c
+set a "4.25/5" -e="1/10"
+set u "2.95" -e=0.2
+set t "9.5*10^-5" -e="0.5*10^-5"
+set c "33*10^-9"
+p -p k t=t a=a u=u c=c
+tex -p=linear k -v=u -v=t -v=a
+tex k
 exit
 
 %Show the main help message
