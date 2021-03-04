@@ -1,3 +1,8 @@
+set v "v = b*s/(a*c)" -a=b;s;c;a
+tex -p=gaussian v -v=b;s;c
+exit
+
+%Dies ist problematisch aufgrund von Genauigkeitsdingen, FIXME
 set k "(-t/ln(1-(a/u)))/c" -a=t;a;u;c
 set a "4.25/5" -e="1/10"
 set u "2.95" -e=0.2
