@@ -86,7 +86,7 @@ public class Main {
         try (Scanner scan = new Scanner(new FileReader(new File(name)))) {
             return readScannerLines(scan, false);
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            System.err.println(e.toString());
         }
         return CODE_ERROR;
     }

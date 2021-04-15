@@ -48,6 +48,7 @@ public class SetEntryCommand implements Callable<Integer> {
     
     @Override
     public Integer call() {
+        System.out.println("The 'sete'-command is deprecated. Use 'set' instead.");
         if (!Main.data.exists(tabletName)) {
             System.err.println("Cannot set entry: No such tablet: '" + tabletName + "'");
             return Main.CODE_ERROR;

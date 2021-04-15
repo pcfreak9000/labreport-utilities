@@ -57,6 +57,10 @@ public class PropagateCommand implements Callable<Integer> {
     
     @Parameters(index = "1..*", paramLabel = "<variable>=<data tablet>", description = "Map variables used in the stated function to data tablets.") //TODO better description concerning datausage stuff with the tablets
     private Map<String, String> tabletmap;
+    
+    @Option(names = { "-n", "--precision" }, defaultValue = "10", paramLabel = "<precision>") //TODO help
+    private int precision;
+    
     //TODO create "direct" mappings so constants without error dont need a dedicated tablet
     
     //TODO only propagate errors from vars who actually have an error
@@ -129,11 +133,12 @@ public class PropagateCommand implements Callable<Integer> {
                 Main.evaluator().defineVariable(nonstatargs.get(j), Main.evaluator().parse(dt.getValue(i)));
                 Main.evaluator().defineVariable("D" + nonstatargs.get(j), Main.evaluator().parse(dt.getError(i)));
             }
-            results[i] = Main.evaluator().getEvalEngine().evaluate(Main.evaluator().parse("N[" + funct.getFunction() + ", 50]")).toString();
-            errors[i] = Main.evaluator().getEvalEngine().evalWithoutNumericReset(Main.evaluator().parse("N[" + errorprop + ", 50]")).toString();
+            IExpr resultExpr = Main.evaluator().eval("N[" + funct.getFunction() + ", " + precision + "]");
+            IExpr errorExpr = Main.evaluator().eval("N[" + errorprop + ", " + precision + "]");
+            results[i] = resultExpr.toString();
+            errors[i] = errorExpr.toString();
             if (printresult) {
-                System.out.println(
-                        "f = " + results[i] + ", " + "Df = " + errors[i]);
+                System.out.println("f = " + results[i] + ", " + "Df = " + errors[i]);
             }
         }
         Main.evaluator().clearVariables();//This is important, otherwise stuff might act weird

@@ -6,9 +6,9 @@ import java.util.concurrent.Callable;
 import de.pcfreak9000.main.DataTablet;
 import de.pcfreak9000.main.DataTablet.DataUsage;
 import de.pcfreak9000.main.FunctionTablet;
+import de.pcfreak9000.main.FunctionTablet.PropagationType;
 import de.pcfreak9000.main.Main;
 import de.pcfreak9000.main.Tablet;
-import de.pcfreak9000.main.FunctionTablet.PropagationType;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -39,6 +39,7 @@ public class SetCommand implements Callable<Integer> {
     
     @Option(names = { "-e", "--error" }, split = ";", defaultValue = "0") //TODO help
     private String[] errors;
+
     
     @Override
     public Integer call() throws Exception {
