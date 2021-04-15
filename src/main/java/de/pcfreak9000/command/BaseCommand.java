@@ -50,7 +50,7 @@ public class BaseCommand {
     
     @Command(name = "exec", description = "Reads instructions from a file")
     int readFile(
-            @Parameters(paramLabel = "<FILE_NAME>", description = "Executes the instructions from a file", index = "0") String fileName,
+            @Parameters(paramLabel = "<FILE_NAME>", description = "The file to read instructions from", index = "0") String fileName,
             @Option(names = { "-h", "--help" }, usageHelp = true, description = HELP_DESC) boolean help) {
         return Main.parseFile(fileName);
     }

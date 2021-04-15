@@ -33,7 +33,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-//TODO DOCument support of mathematical expressions in sete; dont use mathematical constants like e or pi as variable, that might confuse the system
+//TODO DOCument support of mathematical expressions in sete
 @Command(name = "propagate", aliases = "p", description = "Computes values and errors with the given function- and data tablets.")
 public class PropagateCommand implements Callable<Integer> {
     
@@ -55,10 +55,11 @@ public class PropagateCommand implements Callable<Integer> {
     @Parameters(index = "0", paramLabel = "<FUNCTION_TABLET>", description = "A function tablet to perform the calculations on.")
     private String functionTablet;
     
-    @Parameters(index = "1..*", paramLabel = "<variable>=<data tablet>", description = "Map variables used in the stated function to data tablets.") //TODO better description concerning datausage stuff with the tablets
+    @Parameters(index = "1..*", paramLabel = "<variable>=<data tablet>", description = "Map variables used in the function to data tablets. Values for the variables will be pulled from the specified data tablet.") //TODO better description concerning datausage stuff with the tablets
     private Map<String, String> tabletmap;
     
-    @Option(names = { "-n", "--precision" }, defaultValue = "10", paramLabel = "<precision>") //TODO help
+    @Option(names = { "-n",
+            "--precision" }, defaultValue = "10", paramLabel = "<precision>", description = "floating point precision usedto calculate values")
     private int precision;
     
     //TODO create "direct" mappings so constants without error dont need a dedicated tablet
@@ -101,7 +102,12 @@ public class PropagateCommand implements Callable<Integer> {
         DataTablet elementCountT = null;
         List<String> nonstatargs = new ArrayList<>();
         for (int i = 0; i < fargs.length; i++) {
-            DataTablet dt = (DataTablet) Main.data.getTablet(tabletmap.get(fargs[i]));
+            String tabletName = tabletmap.get(fargs[i]);
+            DataTablet dt = (DataTablet) Main.data.getTablet(tabletName);//Check if existing
+            if (dt == null) {
+                System.err.println("Invalid tablet '" + tabletName + "' for function argument '" + fargs[i] + "'.");
+                return Main.CODE_ERROR;
+            }
             if (dt.getLength() > 1 && dt.getDataUsage() == DataUsage.Raw) {
                 if (elementCountT != null && elementCountT.getLength() != dt.getLength()) {
                     System.err.println("Amount of rows not matching! Expected: " + elementCountT.getLength() + "('"

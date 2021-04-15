@@ -3,6 +3,8 @@ package de.pcfreak9000.command;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 
+import org.matheclipse.core.interfaces.IExpr;
+
 import de.pcfreak9000.main.DataTablet;
 import de.pcfreak9000.main.DataTablet.DataUsage;
 import de.pcfreak9000.main.FunctionTablet;
@@ -39,7 +41,6 @@ public class SetCommand implements Callable<Integer> {
     
     @Option(names = { "-e", "--error" }, split = ";", defaultValue = "0") //TODO help
     private String[] errors;
-
     
     @Override
     public Integer call() throws Exception {
@@ -63,9 +64,15 @@ public class SetCommand implements Callable<Integer> {
                 return Main.CODE_ERROR;
             }
             ft.setFunction(params[0]);
+            for (String s : functionArgs) {
+                IExpr e = Main.evaluator().eval(s);
+                if (e.isBuiltInSymbol()) {
+                    System.err.println("Warning: function arg '" + s + "' is pre-defined symbol");
+                }
+            }
             ft.setArgs(functionArgs);
             System.out.println("Set the function of tablet '" + tabletName + "' to '" + params[0]
-                    + "' and the arguments of the function are " + Arrays.toString(params));
+                    + "' and the arguments of the function are " + Arrays.toString(functionArgs));
         } else {
             if (!Main.data.exists(tabletName)) {
                 System.out.println("Created the data tablet '" + tabletName + "'.");

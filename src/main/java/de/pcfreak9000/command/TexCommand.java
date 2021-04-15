@@ -57,7 +57,7 @@ public class TexCommand implements Callable<Integer> {
         }
         FunctionTablet function = (FunctionTablet) ta;
         if (propType == null) {
-            System.out.println("TeXForm of the function " + function.getFunction() + ": "
+            System.out.println("TeXForm of the function '" + function.getFunction() + "':\n "
                     + Main.evaluator().eval("TeXForm[" + function.getFunction() + "]").toString().replace("^{1}", ""));//The fuck
         } else {
             if (variables == null) {
@@ -68,8 +68,8 @@ public class TexCommand implements Callable<Integer> {
             for (int i = 0; i < variables.length; i++) {
                 texString = texString.replace("d" + variables[i].toLowerCase(), "\\Delta " + variables[i]);//Well well well, oof.
             }
-            System.out.println("TeXForm of the error propagation of the function " + function.getFunction()
-                    + " concerning the variables " + Arrays.toString(variables) + ": " + texString.replace("^{1}", ""));//The fuck
+            System.out.println("TeXForm of the error propagation of the function '" + function.getFunction()
+                    + "' concerning the variables " + Arrays.toString(variables) + ":\n " + texString.replace("^{1}", ""));//The fuck
         }
         return Main.CODE_NORMAL;
     }

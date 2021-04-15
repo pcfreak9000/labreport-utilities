@@ -36,7 +36,7 @@ public class Main {
     public static final int CODE_EXIT = 4;
     public static final int CODE_ERROR = 5;
     
-    public static final String SUPPORTED_NUMBER_FORMAT_REGEX = "\\d+(?:[,.]\\d+)|\\d+";
+    public static final String SUPPORTED_NUMBER_FORMAT_REGEX = "\\d+(?:[.]\\d+)|\\d+";
     private static ExprEvaluator EXPRESSION_EVALUATOR;
     private static CommandLine commandline;
     public static final Tablets data = new Tablets();
@@ -47,10 +47,6 @@ public class Main {
         if (EXPRESSION_EVALUATOR == null) {
             System.out.println("Initializing...");
             EXPRESSION_EVALUATOR = new ExprEvaluator();
-            //EXPRESSION_EVALUATOR.getEvalEngine().setRelaxedSyntax(false);
-            //EXPRESSION_EVALUATOR.getEvalEngine().eval
-            //EXPRESSION_EVALUATOR.getEvalEngine().setNumericPrecision(20000); //?!?!?
-            //EXPRESSION_EVALUATOR.getEvalEngine().setSignificantFigures(100); //?!?!?
         }
         return EXPRESSION_EVALUATOR;
     }
