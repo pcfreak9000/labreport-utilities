@@ -36,10 +36,12 @@ public class SetCommand implements Callable<Integer> {
             "Data mode: One or more values." }, arity = "1..*")
     private String[] params;
     
-    @Option(names = { "-a", "--arg" }, split = ";") //TODO help
+    @Option(names = { "-a", "--arg" }, split = ";", description = { "Variables of the function. Only in function mode.",
+            "(e.g. f(x)=x^2+1 => x is a variable)" })
     private String[] functionArgs;
     
-    @Option(names = { "-e", "--error" }, split = ";", defaultValue = "0") //TODO help
+    @Option(names = { "-e", "--error" }, split = ";", defaultValue = "0", description = {
+            "Error(s) of the specified values. Only in value mode.", "The default error is 0." })
     private String[] errors;
     
     @Override
