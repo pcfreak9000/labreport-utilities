@@ -5,7 +5,7 @@ set u "2.95" -e=0.2
 set t "9.5*10^-5" -e="0.5*10^-5"
 set c "0.000000033"
 p -p k t=t a=a u=u e=c -n=50
-tex -p=gaussian k -v=u -v=t -v=a
+tex -p=gaussian k -v=u -v=t -v=a -s=1
 tex k
 exit
 

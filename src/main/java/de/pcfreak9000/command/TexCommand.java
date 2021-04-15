@@ -17,6 +17,7 @@
 package de.pcfreak9000.command;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 
 import de.pcfreak9000.main.FunctionTablet;
@@ -29,6 +30,7 @@ import picocli.CommandLine.Parameters;
 
 @Command(name = "tex", description = "Prints the tex expression of either a function or its error propagation.")
 public class TexCommand implements Callable<Integer> {
+    private static final String TEX_PARTIAL_ERROR_PROP_SYMBOL = "E";
     
     @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC)
     private boolean help;
@@ -44,6 +46,9 @@ public class TexCommand implements Callable<Integer> {
     @Parameters(index = "0", paramLabel = "<FUNCTION_TABLET>", description = "A function tablet to perform the operations on.")
     private String functionTablet;
     
+    @Option(names = { "-s", "--split" }, defaultValue = "0")
+    private int split;//0 -> no split, otherwise group size
+    
     @Override
     public Integer call() {
         if (!Main.data.exists(functionTablet)) {
@@ -58,20 +63,77 @@ public class TexCommand implements Callable<Integer> {
         FunctionTablet function = (FunctionTablet) ta;
         if (propType == null) {
             System.out.println("TeXForm of the function '" + function.getFunction() + "':\n "
-                    + Main.evaluator().eval("TeXForm[" + function.getFunction() + "]").toString().replace("^{1}", ""));//The fuck
+                    + prepareRawTexString(Main.evaluator().eval("TeXForm[" + function.getFunction() + "]").toString()));
         } else {
             if (variables == null) {
                 variables = function.getArgs();
             }
-            String prop = function.getErrorPropFunction(propType, variables);
-            String texString = Main.evaluator().eval("TeXForm[" + prop + "]").toString();
-            for (int i = 0; i < variables.length; i++) {
-                texString = texString.replace("d" + variables[i].toLowerCase(), "\\Delta " + variables[i]);//Well well well, oof.
-            }
+            
             System.out.println("TeXForm of the error propagation of the function '" + function.getFunction()
-                    + "' concerning the variables " + Arrays.toString(variables) + ":\n " + texString.replace("^{1}", ""));//The fuck
+                    + "' concerning the variables " + Arrays.toString(variables) + ":");
+            if (split == 0) {
+                String prop = function.getErrorPropFunction(propType, variables);
+                String texString = Main.evaluator().eval("TeXForm[" + prop + "]").toString();
+                texString = prepareDeltaTexString(texString, variables);
+                texString = prepareRawTexString(texString);
+                System.out.println(" " + texString);
+            } else {
+                String[] groups = function.getErrorPropFunctionSplit(propType, split, variables);
+                String[] res = toSplitTex(propType, groups, variables);
+                for (String s : res) {
+                    System.out.println(" " + s);
+                }
+            }
         }
         return Main.CODE_NORMAL;
+    }
+    
+    private String prepareDeltaTexString(String in, String[] variables) {
+        for (int i = 0; i < variables.length; i++) {
+            in = in.replace("d" + variables[i].toLowerCase(), "\\Delta " + variables[i]);//Well well well, oof.
+        }
+        return in;
+    }
+    
+    private String prepareRawTexString(String in) {
+        in = in.replace("^{1}", "");//The fuck
+        return in;
+    }
+    
+    private String[] toSplitTex(PropagationType type, String[] groups, String[] vars) {
+        String[] res = new String[groups.length + 1];
+        StringBuilder mainBuilder = new StringBuilder();
+        switch (type) {
+        case Gaussian:
+            mainBuilder.append("\\sqrt{");
+            break;
+        case Linear:
+            break;
+        default:
+            throw new IllegalArgumentException(Objects.toString(type));
+        }
+        for (int i = 1; i < res.length; i++) {
+            String symb = "{" + TEX_PARTIAL_ERROR_PROP_SYMBOL + "}_{" + i + "}";
+            String groupTex = Main.ev2.eval("TeXForm[" + groups[i - 1] + "]").toString();
+            groupTex = prepareDeltaTexString(groupTex, vars);
+            groupTex = prepareRawTexString(groupTex);
+            res[i] = symb + " = " + groupTex;
+            if (i != 1) {
+                mainBuilder.append(" + ");
+            }
+            mainBuilder.append(symb);
+        }
+        switch (type) {
+        case Gaussian:
+            mainBuilder.append("}");
+            break;
+        case Linear:
+            break;
+        default:
+            throw new IllegalArgumentException(Objects.toString(type));
+        }
+        res[0] = mainBuilder.toString();
+        return res;
     }
     
 }

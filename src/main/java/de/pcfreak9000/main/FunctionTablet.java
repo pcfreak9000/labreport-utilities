@@ -16,12 +16,14 @@
  *******************************************************************************/
 package de.pcfreak9000.main;
 
+import java.util.Objects;
+
 import org.matheclipse.core.interfaces.IExpr;
 
 import de.pcfreak9000.main.DataTablet.DataUsage;
 
 public class FunctionTablet implements Tablet {
-    
+        
     public static enum PropagationType {
         Linear, Gaussian;
         
@@ -72,27 +74,63 @@ public class FunctionTablet implements Tablet {
         return calculateErrorPropagation(type, evalVars).toString();
     }
     
+    public String[] getErrorPropFunctionSplit(PropagationType type, int groupSize, String... evalVars) {
+        int groupCount = (int) Math.ceil(evalVars.length / (double) groupSize);
+        String[] groups = new String[groupCount];
+        String[] partials = getErrorPropPartials(type, evalVars);
+        for (int i = 0; i < groups.length; i++) {
+            int baseIndex = i * groupSize;
+            StringBuilder builder = new StringBuilder();
+            for (int j = 0; j < groupSize && baseIndex + j < partials.length; j++) {
+                int partialIndex = baseIndex + j;
+                String partial = partials[partialIndex];
+                if (j != 0) {
+                    builder.append("+");
+                }
+                builder.append(partial);
+            }
+            groups[i] = Main.ev2.eval(builder.toString()).toString();
+        }
+        return groups;
+    }
+    
+    public String[] getErrorPropPartials(PropagationType type, String... evalVars) {
+        String[] res = new String[evalVars.length];
+        for (int i = 0; i < res.length; i++) {
+            switch (type) {
+            case Gaussian:
+                res[i] = "(" + getPartial(evalVars[i]) + ")^2 * (\"D" + evalVars[i] + "\")^2";
+                break;
+            case Linear:
+                res[i] = "Abs[" + getPartial(evalVars[i]) + "]" + " * \"D" + evalVars[i] + "\"";
+                break;
+            default:
+                throw new IllegalArgumentException(Objects.toString(type));
+            }
+        }
+        return res;
+    }
+    
     public IExpr calculateErrorPropagation(PropagationType type, String... evalVars) {
         if (evalVars == null || evalVars.length == 0) {
             evalVars = args;
         }
+        String[] partials = getErrorPropPartials(type, evalVars);
         StringBuilder b = new StringBuilder();
         switch (type) {
         case Gaussian:
             b.append("Sqrt[");
             for (int i = 0; i < evalVars.length; i++) {
-                b.append("(" + getPartial(evalVars[i]) + ")^2 * (\"D" + evalVars[i] + "\")^2"
-                        + (i == evalVars.length - 1 ? "]" : " + "));
+                b.append(partials[i] + (i == evalVars.length - 1 ? "]" : " + "));
             }
             break;
         case Linear:
             for (int i = 0; i < evalVars.length; i++) {
-                b.append("Abs[" + getPartial(evalVars[i]) + "]" + " * \"D" + evalVars[i] + "\""
-                        + (i == evalVars.length - 1 ? "" : " + "));
+                b.append(partials[i] + (i == evalVars.length - 1 ? "" : " + "));
             }
             break;
         default:
-            throw new IllegalStateException(type + "");
+            throw new IllegalArgumentException(Objects.toString(type));
         }
         return Main.ev2.eval(b.toString());//FIXME Df being negative, String vs Expr problems, etc. See the current test 
     }
