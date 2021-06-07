@@ -103,19 +103,20 @@ public class SetFromFileCommand implements Callable<Integer> {
         List<String> values = new ArrayList<>();
         List<String> errors = new ArrayList<>();
         int index = 0;
+        System.out.println("Tab: " + tabletName);
         for (String[] entry : entries) {//TODO Boundary checks, better error messages etc
             String value = entry[valueColumn];
-            value = value.replace(',', '.');
+            value = fixNr(value);
             if (!value.matches(Main.SUPPORTED_NUMBER_FORMAT_REGEX)) {//Put this in a method!!
-                System.err.println("Cell is not matching the supported number format: '" + value + "'");
-                return Main.CODE_ERROR;
+                //System.err.println("Cell is not matching the supported number format: '" + value + "'");
+                //return Main.CODE_ERROR;
             }
             values.add(value);
             String error = errorColumn == -1 ? "0" : entry[errorColumn];
-            error = error.replace(',', '.');
+            error = fixNr(error);
             if (!error.matches(Main.SUPPORTED_NUMBER_FORMAT_REGEX)) {
-                System.err.println("Cell is not matching the supported number format: '" + value + "'");
-                return Main.CODE_ERROR;
+                //System.err.println("Cell is not matching the supported number format: '" + value + "'");
+                //return Main.CODE_ERROR;
             }
             errors.add(error);
             index++;
@@ -133,5 +134,14 @@ public class SetFromFileCommand implements Callable<Integer> {
         dt.setPreferredPropagation(PropagationType.get(dt.getDataUsage()));
         System.out.println("Successfully read the file '" + file.toString() + "'");
         return Main.CODE_NORMAL;
+    }
+    
+    private String fixNr(String in) {
+        in = in.replace(',', '.');
+        if (in.contains("E")) {
+            String[] ar = in.split("E");
+            in = "((" + ar[0] + ")*10^(" + Main.evaluator().eval(ar[1]).toString() + "))";
+        }
+        return in;
     }
 }
