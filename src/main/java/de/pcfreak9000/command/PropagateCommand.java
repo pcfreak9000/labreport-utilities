@@ -139,18 +139,20 @@ public class PropagateCommand implements Callable<Integer> {
                 Main.evaluator().defineVariable(nonstatargs.get(j), Main.evaluator().parse(dt.getValue(i)));
                 Main.evaluator().defineVariable("D" + nonstatargs.get(j), Main.evaluator().parse(dt.getError(i)));
             }
+            boolean err = false;
             try {
                 IExpr resultExpr = Main.evaluator().eval("N[" + funct.getFunction() + ", " + precision + "]");
                 IExpr errorExpr = Main.evaluator().eval("N[" + errorprop + ", " + precision + "]");
                 results[i] = resultExpr.toString();
                 errors[i] = errorExpr.toString();
             } catch (Exception e) {
+                err = true;
                 results[i] = "Error";
                 errors[i] = "Error";
             }
             if (printresult) {
                 System.out.println("f = " + results[i] + ", " + "Df = " + errors[i]);
-            } else {
+            } else if (err) {
                 System.out.println("Error. Values will be invalid.");
             }
         }

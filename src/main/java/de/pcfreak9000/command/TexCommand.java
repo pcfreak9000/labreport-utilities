@@ -100,6 +100,7 @@ public class TexCommand implements Callable<Integer> {
         return in;
     }
     
+    //TODO try to simplify combined groups?
     private String[] toSplitTex(PropagationType type, String[] groups, String[] vars) {
         String[] res = new String[groups.length + 1];
         StringBuilder mainBuilder = new StringBuilder();
