@@ -55,6 +55,10 @@ public class DataTablet implements Tablet {
         return getDataUsage() == DataUsage.Raw ? (values == null ? 0 : values.length) : 1;//Well well well...
     }
     
+    public int getLengthRaw() {
+        return values == null ? 0 : values.length;
+    }
+    
     public DataUsage getDataUsage() {
         return dataUsage;
     }
@@ -114,7 +118,21 @@ public class DataTablet implements Tablet {
         }
     }
     
-    public String stringRepresentation() {
+    public String getErrorRaw(int index) {
+        if (errors != null) {
+            return errors[index];
+        }
+        return "0";
+    }
+    
+    public String getValueRaw(int index) {
+        if (values != null) {
+            return values[index];
+        }
+        return "0";
+    }
+    
+    private String stringRepresentation() {
         String s = "Format: Value; Error\n";
         if (values != null) {
             for (int i = 0; i < values.length; i++) {

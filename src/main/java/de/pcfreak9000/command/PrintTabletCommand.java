@@ -16,6 +16,7 @@
  *******************************************************************************/
 package de.pcfreak9000.command;
 
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 
 import de.pcfreak9000.main.DataTablet;
@@ -35,7 +36,14 @@ public class PrintTabletCommand implements Callable<Integer> {
     @Parameters(index = "0", paramLabel = "<TABLET>", description = "The tablet to print.")
     private String tabletName;
     
-    //TODO print only values or print only errors
+    @Option(names = { "-r",
+            "--raw" }, defaultValue = "false", description = "Useful to see the raw contents of a MASD data tablet.")
+    private boolean raw = false;
+    
+    @Option(names = { "-f",
+            "--format" }, defaultValue = "%v; %e", description = "Specify the format in which the value-error-pairs will be printed. For each value-error-pair, %v in the format will be replaced with the corresponding value and %e with the corresponding error. Other characters will be printed for each pair. Printing only values or only the errors is possible. The default is \\\"%v; %e\\\"")
+    private String format = "%v; %e";
+    
     @Override
     public Integer call() {
         if (!Main.data.exists(tabletName)) {
@@ -45,15 +53,26 @@ public class PrintTabletCommand implements Callable<Integer> {
         Tablet tablet = Main.data.getTablet(tabletName);
         if (tablet instanceof DataTablet) {
             DataTablet dt = (DataTablet) tablet;
-            System.out.println("Data '" + tabletName + "':");
-            System.out.println(dt.stringRepresentation());
+            System.out.println("Data '" + tabletName + "', Format: '" + format.toLowerCase() + "' Raw: " + raw);
+            printData(dt);
         } else if (tablet instanceof FunctionTablet) {
             FunctionTablet ft = (FunctionTablet) tablet;
             System.out.println("Function '" + tabletName + "': " + ft.getFunction());
+            System.out.println("with args: " + Arrays.toString(ft.getArgs()));
         } else {
             System.out.println(tablet.toString());
         }
         return Main.CODE_NORMAL;
+    }
+    
+    private void printData(DataTablet dt) {
+        format = format.toLowerCase();
+        int len = raw ? dt.getLengthRaw() : dt.getLength();
+        for (int i = 0; i < len; i++) {
+            String s = format.replace("%v", raw ? dt.getValueRaw(i) : dt.getValue(i));
+            s = s.replace("%e", raw ? dt.getErrorRaw(i) : dt.getError(i));
+            System.out.println(s);
+        }
     }
     
 }
