@@ -35,6 +35,7 @@ public class PrintTabletCommand implements Callable<Integer> {
     @Parameters(index = "0", paramLabel = "<TABLET>", description = "The tablet to print.")
     private String tabletName;
     
+    //TODO print only values or print only errors
     @Override
     public Integer call() {
         if (!Main.data.exists(tabletName)) {

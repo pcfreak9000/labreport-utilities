@@ -43,6 +43,8 @@ import picocli.CommandLine.Parameters;
 @Command(name = "setf", description = "Sets the content of a data tablet from a csv-file.")
 public class SetFromFileCommand implements Callable<Integer> {
     
+    //TODO verbose mode?
+    
     @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC)
     private boolean help;
     
