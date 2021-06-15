@@ -3,6 +3,7 @@ package de.pcfreak9000.command;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 
+import org.matheclipse.core.eval.ExprEvaluator;
 import org.matheclipse.core.interfaces.IExpr;
 
 import de.pcfreak9000.main.DataTablet;
@@ -66,8 +67,9 @@ public class SetCommand implements Callable<Integer> {
                 return Main.CODE_ERROR;
             }
             ft.setFunction(params[0]);
+            ExprEvaluator eval = new ExprEvaluator();
             for (String s : functionArgs) {
-                IExpr e = Main.evaluator().eval(s);
+                IExpr e = eval.eval(s);
                 if (e.isBuiltInSymbol()) {
                     System.err.println("Warning: function arg '" + s + "' is pre-defined symbol");
                 }

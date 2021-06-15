@@ -18,12 +18,13 @@ package de.pcfreak9000.main;
 
 import java.util.Objects;
 
+import org.matheclipse.core.eval.ExprEvaluator;
 import org.matheclipse.core.interfaces.IExpr;
 
 import de.pcfreak9000.main.DataTablet.DataUsage;
 
 public class FunctionTablet implements Tablet {
-        
+    
     public static enum PropagationType {
         Linear, Gaussian;
         
@@ -78,6 +79,7 @@ public class FunctionTablet implements Tablet {
         int groupCount = (int) Math.ceil(evalVars.length / (double) groupSize);
         String[] groups = new String[groupCount];
         String[] partials = getErrorPropPartials(type, evalVars);
+        ExprEvaluator eval = new ExprEvaluator();
         for (int i = 0; i < groups.length; i++) {
             int baseIndex = i * groupSize;
             StringBuilder builder = new StringBuilder();
@@ -89,7 +91,7 @@ public class FunctionTablet implements Tablet {
                 }
                 builder.append(partial);
             }
-            groups[i] = Main.ev2.eval(builder.toString()).toString();
+            groups[i] = eval.eval("simplify [" + builder.toString() + "]").toString();
         }
         return groups;
     }
@@ -102,7 +104,7 @@ public class FunctionTablet implements Tablet {
                 res[i] = "(" + getPartial(evalVars[i]) + ")^2 * (\"D" + evalVars[i] + "\")^2";
                 break;
             case Linear:
-                res[i] = "Abs[" + getPartial(evalVars[i]) + "]" + " * \"D" + evalVars[i] + "\"";
+                res[i] = "Abs(" + getPartial(evalVars[i]) + ")" + " * \"D" + evalVars[i] + "\"";
                 break;
             default:
                 throw new IllegalArgumentException(Objects.toString(type));
@@ -119,9 +121,9 @@ public class FunctionTablet implements Tablet {
         StringBuilder b = new StringBuilder();
         switch (type) {
         case Gaussian:
-            b.append("Sqrt[");
+            b.append("Sqrt(");
             for (int i = 0; i < evalVars.length; i++) {
-                b.append(partials[i] + (i == evalVars.length - 1 ? "]" : " + "));
+                b.append(partials[i] + (i == evalVars.length - 1 ? ")" : " + "));
             }
             break;
         case Linear:
@@ -132,11 +134,11 @@ public class FunctionTablet implements Tablet {
         default:
             throw new IllegalArgumentException(Objects.toString(type));
         }
-        return Main.ev2.eval(b.toString());//FIXME Df being negative, String vs Expr problems, etc. See the current test 
+        return new ExprEvaluator().eval("simplify [" + b.toString() + "]");//FIXME Df being negative, String vs Expr problems, etc. See the current test . also this new ExprEval...
     }
     
     private String getPartial(String v) {
-        return "D[" + function + ", " + v + "]";
+        return "D(" + function + ", " + v + ")";
     }
     
     @Override

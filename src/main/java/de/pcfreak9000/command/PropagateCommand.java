@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import org.matheclipse.core.eval.ExprEvaluator;
 import org.matheclipse.core.interfaces.IExpr;
 
 import de.pcfreak9000.main.DataTablet;
@@ -101,6 +102,7 @@ public class PropagateCommand implements Callable<Integer> {
         String countName = null;
         DataTablet elementCountT = null;
         List<String> nonstatargs = new ArrayList<>();
+        ExprEvaluator evaluator = new ExprEvaluator();
         for (int i = 0; i < fargs.length; i++) {
             String tabletName = tabletmap.get(fargs[i]);
             DataTablet dt = (DataTablet) Main.data.getTablet(tabletName);//Check if existing
@@ -118,8 +120,8 @@ public class PropagateCommand implements Callable<Integer> {
                 countName = fargs[i];
                 nonstatargs.add(fargs[i]);
             } else {
-                Main.evaluator().defineVariable(fargs[i], Main.evaluator().parse(dt.getValue(0)));
-                Main.evaluator().defineVariable("D" + fargs[i], Main.evaluator().parse(dt.getError(0)));
+                evaluator.defineVariable(fargs[i], evaluator.parse(dt.getValue(0)));
+                evaluator.defineVariable("D" + fargs[i], evaluator.parse(dt.getError(0)));
             }
             propagationtype = propagationtype.compare(dt.getPreferredPropagation());
         }
@@ -136,13 +138,13 @@ public class PropagateCommand implements Callable<Integer> {
         for (int i = 0; i < iterationCount; i++) {
             for (int j = 0; j < nonstatargs.size(); j++) {
                 DataTablet dt = (DataTablet) Main.data.getTablet(tabletmap.get(nonstatargs.get(j)));
-                Main.evaluator().defineVariable(nonstatargs.get(j), Main.evaluator().parse(dt.getValue(i)));
-                Main.evaluator().defineVariable("D" + nonstatargs.get(j), Main.evaluator().parse(dt.getError(i)));
+                evaluator.defineVariable(nonstatargs.get(j), evaluator.parse(dt.getValue(i)));
+                evaluator.defineVariable("D" + nonstatargs.get(j), evaluator.parse(dt.getError(i)));
             }
             boolean err = false;
             try {
-                IExpr resultExpr = Main.evaluator().eval("N[" + funct.getFunction() + ", " + precision + "]");
-                IExpr errorExpr = Main.evaluator().eval("N[" + errorprop + ", " + precision + "]");
+                IExpr resultExpr = evaluator.eval("N[" + funct.getFunction() + ", " + precision + "]");
+                IExpr errorExpr = evaluator.eval("N[" + errorprop + ", " + precision + "]");
                 results[i] = resultExpr.toString();
                 errors[i] = errorExpr.toString();
             } catch (Exception e) {
@@ -156,7 +158,7 @@ public class PropagateCommand implements Callable<Integer> {
                 System.out.println("Error. Values will be invalid.");
             }
         }
-        Main.evaluator().clearVariables();//This is important, otherwise stuff might act weird
+        //evaluator.clearVariables();//This is important, otherwise stuff might act weird -> local evaluator
         if (resultTabletT != null) {
             resultTabletT.setValues(results);
             resultTabletT.setErrors(errors);

@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 
+import org.matheclipse.core.eval.ExprEvaluator;
+
 import de.pcfreak9000.main.FunctionTablet;
 import de.pcfreak9000.main.FunctionTablet.PropagationType;
 import de.pcfreak9000.main.Main;
@@ -70,10 +72,11 @@ public class TexCommand implements Callable<Integer> {
             }
             
             System.out.println("TeXForm of the error propagation of the function '" + function.getFunction()
-                    + "' concerning the variables " + Arrays.toString(variables) + ":");
+                    + "' with respect to the variables " + Arrays.toString(variables) + ":");
             if (split == 0) {
+                ExprEvaluator eval = new ExprEvaluator();
                 String prop = function.getErrorPropFunction(propType, variables);
-                String texString = Main.evaluator().eval("TeXForm[" + prop + "]").toString();
+                String texString = eval.eval("TeXForm[" + prop + "]").toString();
                 texString = prepareDeltaTexString(texString, variables);
                 texString = prepareRawTexString(texString);
                 System.out.println(" " + texString);
@@ -113,9 +116,10 @@ public class TexCommand implements Callable<Integer> {
         default:
             throw new IllegalArgumentException(Objects.toString(type));
         }
+        ExprEvaluator eval = new ExprEvaluator();
         for (int i = 1; i < res.length; i++) {
             String symb = "{" + TEX_PARTIAL_ERROR_PROP_SYMBOL + "}_{" + i + "}";
-            String groupTex = Main.ev2.eval("TeXForm[" + groups[i - 1] + "]").toString();
+            String groupTex = eval.eval("TeXForm[" + groups[i - 1] + "]").toString();
             groupTex = prepareDeltaTexString(groupTex, vars);
             groupTex = prepareRawTexString(groupTex);
             res[i] = symb + " = " + groupTex;
