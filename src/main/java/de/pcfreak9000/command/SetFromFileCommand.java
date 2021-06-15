@@ -22,7 +22,9 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import com.opencsv.CSVParser;
@@ -43,7 +45,7 @@ import picocli.CommandLine.Parameters;
 @Command(name = "setf", description = "Sets the content of a data tablet from a csv-file.")
 public class SetFromFileCommand implements Callable<Integer> {
     
-    //TODO verbose mode?
+    private static Map<String, List<String[]>> cache = new HashMap<>();
     
     @Option(names = { "-h", "--help" }, usageHelp = true, description = BaseCommand.HELP_DESC)
     private boolean help;
@@ -74,6 +76,12 @@ public class SetFromFileCommand implements Callable<Integer> {
     @Parameters(paramLabel = "<TABLET_NAME>", description = "The tablet that is to be filled.", index = "0")
     private String tabletName;
     
+    @Option(names = { "--verbose" })
+    private boolean verbose;
+    
+    @Option(names = { "--forceReadFile" })
+    private boolean forceReadFile;
+    
     @Override
     public Integer call() {
         File file = filepath.toFile();
@@ -82,12 +90,8 @@ public class SetFromFileCommand implements Callable<Integer> {
             return Main.CODE_ERROR;
         }
         List<String[]> entries;
-        try (Reader reader = Files.newBufferedReader(filepath)) {
-            CSVParser csvParser = new CSVParserBuilder().withFieldAsNull(CSVReaderNullFieldIndicator.BOTH)
-                    .withIgnoreLeadingWhiteSpace(true).withStrictQuotes(false).build();
-            CSVReader csvReader = new CSVReaderBuilder(reader).withSkipLines(lineOffset).withCSVParser(csvParser)
-                    .build();
-            entries = csvReader.readAll();
+        try {
+            entries = getEntries();
         } catch (IOException e) {
             System.err.println("Error while reading the file: " + e);
             return Main.CODE_ERROR;
@@ -105,24 +109,33 @@ public class SetFromFileCommand implements Callable<Integer> {
         List<String> values = new ArrayList<>();
         List<String> errors = new ArrayList<>();
         int index = 0;
-        System.out.println("Tab: " + tabletName);
+        int linesUsed = 0;
+        if (verbose) {
+            System.out.println("Tab: " + tabletName);
+        }
         for (String[] entry : entries) {//TODO Boundary checks, better error messages etc
+            if (index < lineOffset) {
+                index++;
+                continue;
+            }
+            //value
             String value = entry[valueColumn];
             value = fixNr(value);
-            if (!value.matches(Main.SUPPORTED_NUMBER_FORMAT_REGEX)) {//Put this in a method!!
-                //System.err.println("Cell is not matching the supported number format: '" + value + "'");
-                //return Main.CODE_ERROR;
+            if (verbose) {
+                System.out.println("v=" + value);
             }
             values.add(value);
+            //error
             String error = errorColumn == -1 ? "0" : entry[errorColumn];
             error = fixNr(error);
-            if (!error.matches(Main.SUPPORTED_NUMBER_FORMAT_REGEX)) {
-                //System.err.println("Cell is not matching the supported number format: '" + value + "'");
-                //return Main.CODE_ERROR;
+            if (verbose) {
+                System.out.println("e=" + error);
             }
             errors.add(error);
+            //loop stuff
+            linesUsed++;
             index++;
-            if (count != -1 && index >= count) {//We are done
+            if (count != -1 && linesUsed >= count) {//We are done
                 break;
             }
         }
@@ -134,7 +147,7 @@ public class SetFromFileCommand implements Callable<Integer> {
             dt.setDataUsage(DataUsage.Raw);
         }
         dt.setPreferredPropagation(PropagationType.get(dt.getDataUsage()));
-        System.out.println("Successfully read the file '" + file.toString() + "'");
+        System.out.println("Filled the tablet '" + tabletName + "' with data from '" + file.toString() + "'.");
         return Main.CODE_NORMAL;
     }
     
@@ -145,5 +158,29 @@ public class SetFromFileCommand implements Callable<Integer> {
             in = "((" + ar[0] + ")*10^(" + Main.evaluator().eval(ar[1]).toString() + "))";
         }
         return in;
+    }
+    
+    //Check if format is supported here? -> another method
+    //        if (!error.matches(Main.SUPPORTED_NUMBER_FORMAT_REGEX)) {
+    //            //System.err.println("Cell is not matching the supported number format: '" + value + "'");
+    //            //return Main.CODE_ERROR;
+    //        }
+    
+    private List<String[]> getEntries() throws IOException {
+        List<String[]> ent = cache.get(filepath.toAbsolutePath().toString());
+        if (ent == null || forceReadFile) {
+            if (cache.size() > 10) {
+                cache.clear();
+            }
+            try (Reader reader = Files.newBufferedReader(filepath)) {
+                CSVParser csvParser = new CSVParserBuilder().withFieldAsNull(CSVReaderNullFieldIndicator.BOTH)
+                        .withIgnoreLeadingWhiteSpace(true).withStrictQuotes(false).build();
+                CSVReader csvReader = new CSVReaderBuilder(reader).withSkipLines(0).withCSVParser(csvParser).build();
+                ent = csvReader.readAll();
+                cache.put(filepath.toAbsolutePath().toString(), ent);
+                System.out.println("Parsed the file '" + filepath.toString() + "'.");
+            }
+        }
+        return ent;
     }
 }
