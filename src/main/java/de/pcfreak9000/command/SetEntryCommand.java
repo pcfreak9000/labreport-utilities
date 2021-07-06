@@ -29,7 +29,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-//TODO properly read csv files, and also write them
+//TODO properly read csv files, and also write them -> Tablesaw framework?
 @Deprecated
 @Command(name = "sete", description = "Sets the content of a tablet (function or data) directly from the input (i.e. manually).")
 public class SetEntryCommand implements Callable<Integer> {

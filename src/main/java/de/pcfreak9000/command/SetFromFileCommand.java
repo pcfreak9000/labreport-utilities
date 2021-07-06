@@ -82,6 +82,9 @@ public class SetFromFileCommand implements Callable<Integer> {
     @Option(names = { "--forceReadFile" })
     private boolean forceReadFile;
     
+    @Option(names = "-sk")
+    private int[] skiplines;
+    
     @Override
     public Integer call() {
         File file = filepath.toFile();
@@ -118,6 +121,11 @@ public class SetFromFileCommand implements Callable<Integer> {
                 index++;
                 continue;
             }
+            if(skipThisLine(index)) {
+                index++;
+                linesUsed++;
+                continue;
+            }
             //value
             String value = entry[valueColumn];
             value = fixNr(value);
@@ -149,6 +157,15 @@ public class SetFromFileCommand implements Callable<Integer> {
         dt.setPreferredPropagation(PropagationType.get(dt.getDataUsage()));
         System.out.println("Filled the tablet '" + tabletName + "' with data from '" + file.toString() + "'.");
         return Main.CODE_NORMAL;
+    }
+    
+    private boolean skipThisLine(int index) {
+        for(int i : skiplines) {
+            if(index == i) {
+                return true;
+            }
+        }
+        return false;
     }
     
     private String fixNr(String in) {

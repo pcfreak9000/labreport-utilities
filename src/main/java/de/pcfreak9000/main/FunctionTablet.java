@@ -134,7 +134,8 @@ public class FunctionTablet implements Tablet {
         default:
             throw new IllegalArgumentException(Objects.toString(type));
         }
-        return new ExprEvaluator().eval("simplify [" + b.toString() + "]");//FIXME Df being negative, String vs Expr problems, etc. See the current test . also this new ExprEval...
+        //return new ExprEvaluator().eval(b.toString());
+        return new ExprEvaluator().eval("simplify [" + b.toString() + "]");//FIXME Df being negative, String vs Expr problems, etc. See the current test . also this new ExprEval..., also fix too long expressions for the simplify...
     }
     
     private String getPartial(String v) {
