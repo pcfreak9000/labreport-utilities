@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.concurrent.Callable;
 
 import org.matheclipse.core.eval.EvalEngine;
-import org.matheclipse.core.expression.F;
 import org.matheclipse.core.interfaces.IExpr;
 
 import de.pcfreak9000.main.DataTablet;
@@ -38,9 +37,8 @@ public class SetCommand implements Callable<Integer> {
             "Data mode: One or more values." }, arity = "1..*")
     private String[] params;
     
-    @Option(names = { "-a", "--arg" }, split = ";", description = { "Variables of the function. Only in function mode.",
-            "(e.g. f(x)=x^2+1 => x is a variable)" })
-    private String[] functionArgs;
+    @Option(names = { "-a", "--function" })
+    private boolean isFunction;
     
     @Option(names = { "-e", "--error" }, split = ";", defaultValue = "0", description = {
             "Error(s) of the specified values. Only in value mode.", "The default error is 0." })
@@ -48,7 +46,7 @@ public class SetCommand implements Callable<Integer> {
     
     @Override
     public Integer call() throws Exception {
-        if (functionArgs != null) {
+        if (isFunction) {
             if (!Main.data.exists(tabletName)) {
                 System.out.println("Created the function tablet '" + tabletName + "'.");
                 Main.data.createFunctionTablet(tabletName);
@@ -63,20 +61,9 @@ public class SetCommand implements Callable<Integer> {
                 System.err.println("Only one parameter is accepted in function-mode");
                 return Main.CODE_ERROR;
             }
-            if (functionArgs == null || functionArgs.length == 0) {
-                System.err.println("Not enough function arguments");
-                return Main.CODE_ERROR;
-            }
             ft.setFunction(params[0]);
-            for (String s : functionArgs) {
-                IExpr e = F.eval(s);
-                if (e.isBuiltInSymbol()) {
-                    System.err.println("Warning: function arg '" + s + "' is pre-defined symbol");
-                }
-            }
-            ft.setArgs(functionArgs);
-            System.out.println("Set the function of tablet '" + tabletName + "' to '" + params[0]
-                    + "' and the arguments of the function are " + Arrays.toString(functionArgs));
+            System.out.println("Set the function of tablet '" + tabletName + "' to '" + ft.getFunctionOriginal()
+                    + "' and the arguments of the function are " + Arrays.toString(ft.getVarArgs()));
         } else {
             if (!Main.data.exists(tabletName)) {
                 System.out.println("Created the data tablet '" + tabletName + "'.");

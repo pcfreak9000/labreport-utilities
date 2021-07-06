@@ -17,6 +17,7 @@
 package de.pcfreak9000.command;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 
@@ -48,6 +49,9 @@ public class TexCommand implements Callable<Integer> {
     @Parameters(index = "0", paramLabel = "<FUNCTION_TABLET>", description = "A function tablet to perform the operations on.")
     private String functionTablet;
     
+    @Parameters(index = "1..*")
+    private Map<String, String> varMap;
+    
     @Option(names = { "-s", "--split" }, defaultValue = "0")
     private int split;//0 -> no split, otherwise group size
     
@@ -64,25 +68,28 @@ public class TexCommand implements Callable<Integer> {
         }
         FunctionTablet function = (FunctionTablet) ta;
         if (propType == null) {
-            System.out.println("TeXForm of the function '" + function.getFunction() + "':\n "
-                    + prepareRawTexString(Main.evaluator().eval("TeXForm[" + function.getFunction() + "]").toString()));
+            System.out.println("TeXForm of the function '" + function.getFunctionOriginal() + "':\n " + prepareRawTexString(
+                    Main.evaluator().eval("TeXForm[" + function.getFunctionInternal() + "]").toString(), function));
         } else {
             if (variables == null) {
-                variables = function.getArgs();
+                variables = function.getInternalArgs();
+            } else {
+                for (int i = 0; i < variables.length; i++) {
+                    variables[i] = function.getInternalFromVar(variables[i]);
+                }
             }
-            
-            System.out.println("TeXForm of the error propagation of the function '" + function.getFunction()
-                    + "' with respect to the variables " + Arrays.toString(variables) + ":");
+            System.out.println("TeXForm of the error propagation of the function '" + function.getFunctionOriginal()
+                    + "' with respect to the variables " + Arrays.toString(function.getVarArgs()) + ":");
             if (split == 0) {
                 ExprEvaluator eval = new ExprEvaluator();
                 String prop = function.getErrorPropFunction(propType, variables);
                 String texString = eval.eval("TeXForm[" + prop + "]").toString();
                 texString = prepareDeltaTexString(texString, variables);
-                texString = prepareRawTexString(texString);
+                texString = prepareRawTexString(texString, function);
                 System.out.println(" " + texString);
             } else {
                 String[] groups = function.getErrorPropFunctionSplit(propType, split, variables);
-                String[] res = toSplitTex(propType, groups, variables);
+                String[] res = toSplitTex(propType, groups, variables, function);
                 for (String s : res) {
                     System.out.println(" " + s);
                 }
@@ -98,12 +105,22 @@ public class TexCommand implements Callable<Integer> {
         return in;
     }
     
-    private String prepareRawTexString(String in) {
+    private String prepareRawTexString(String in, FunctionTablet ft) {
         in = in.replace("^{1}", "");//The fuck
+        for (String var : ft.getVarArgs()) {
+            String texRepl = varMap == null ? null : varMap.get(var);
+            if (texRepl == null) {
+                texRepl = var;
+            }
+            String internal = ft.getInternalFromVar(var);
+            if (internal != null) {
+                in = in.replace(internal, texRepl);
+            }
+        }
         return in;
     }
     
-    private String[] toSplitTex(PropagationType type, String[] groups, String[] vars) {
+    private String[] toSplitTex(PropagationType type, String[] groups, String[] vars, FunctionTablet ft) {
         String[] res = new String[groups.length + 1];
         StringBuilder mainBuilder = new StringBuilder();
         switch (type) {
@@ -120,7 +137,7 @@ public class TexCommand implements Callable<Integer> {
             String symb = "{" + TEX_PARTIAL_ERROR_PROP_SYMBOL + "}_{" + i + "}";
             String groupTex = eval.eval("TeXForm[" + groups[i - 1] + "]").toString();
             groupTex = prepareDeltaTexString(groupTex, vars);
-            groupTex = prepareRawTexString(groupTex);
+            groupTex = prepareRawTexString(groupTex, ft);
             res[i] = symb + " = " + groupTex;
             if (i != 1) {
                 mainBuilder.append(" + ");

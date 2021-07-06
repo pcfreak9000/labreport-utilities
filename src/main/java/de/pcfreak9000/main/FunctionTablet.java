@@ -16,11 +16,16 @@
  *******************************************************************************/
 package de.pcfreak9000.main;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import org.matheclipse.core.eval.ExprEvaluator;
 import org.matheclipse.core.expression.F;
 import org.matheclipse.core.interfaces.IExpr;
+
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 
 import de.pcfreak9000.main.DataTablet.DataUsage;
 
@@ -54,22 +59,49 @@ public class FunctionTablet implements Tablet {
     }
     
     private String function;
-    private String[] args;
+    private String varfunc;
+    private BiMap<String, String> varMap = HashBiMap.create();
     
-    public String getFunction() {
+    public String getFunctionInternal() {
         return function;
     }
     
-    public void setFunction(String function) {
-        this.function = function;
+    public String getFunctionOriginal() {
+        return varfunc;
     }
     
-    public String[] getArgs() {
-        return args;
+    public void setFunction(String funct) {
+        this.varfunc = funct;
+        IExpr e = F.eval(funct);
+        Set<String> vars = new HashSet<>();
+        e = e.replace((p) -> p.isAtom() && !p.isBuiltInSymbol() && !p.isNumber(), (in) -> {
+            String repl = "\"variable" + in + "\"";
+            IExpr replexpr = F.eval(repl);
+            vars.add(replexpr.toString());
+            varMap.put(in.toString(), replexpr.toString());
+            return replexpr;
+        });
+        this.function = e.toString();
+    }
+    
+    public String[] getVarArgs() {
+        return varMap.keySet().toArray(String[]::new);
+    }
+    
+    public String[] getInternalArgs() {
+        return varMap.values().toArray(String[]::new);
+    }
+    
+    public String getVarFromInternal(String internal) {
+        return varMap.inverse().get(internal);
+    }
+    
+    public String getInternalFromVar(String var) {
+        return varMap.get(var);
     }
     
     public void setArgs(String... args) {
-        this.args = args;
+        // this.args = args;
     }
     
     public String getErrorPropFunction(PropagationType type, String... evalVars) {
@@ -116,7 +148,7 @@ public class FunctionTablet implements Tablet {
     
     public IExpr calculateErrorPropagation(PropagationType type, String... evalVars) {
         if (evalVars == null || evalVars.length == 0) {
-            evalVars = args;
+            evalVars = getInternalArgs();
         }
         String[] partials = getErrorPropPartials(type, evalVars);
         StringBuilder b = new StringBuilder();
@@ -143,8 +175,7 @@ public class FunctionTablet implements Tablet {
             throw new IllegalArgumentException(Objects.toString(type));
         }
         return eval.eval(F.Simplify(ex));
-        //return new ExprEvaluator().eval(b.toString());
-        //return new ExprEvaluator().eval("simplify [" + b.toString() + "]");//FIXME Df being negative, String vs Expr problems, etc. See the current test . also this new ExprEval..., also fix too long expressions for the simplify...
+        //FIXME fix too long(?) expressions for the simplify...
     }
     
     private String getPartial(String v) {

@@ -17,6 +17,7 @@
 package de.pcfreak9000.command;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -68,8 +69,6 @@ public class PropagateCommand implements Callable<Integer> {
     
     //TODO create "direct" mappings so constants without error dont need a dedicated tablet
     
-    //TODO only propagate errors from vars who actually have an error
-    
     @Override
     public Integer call() {
         if (!Main.data.exists(functionTablet)) {
@@ -95,11 +94,14 @@ public class PropagateCommand implements Callable<Integer> {
             resultTabletT = (DataTablet) rt;
         }
         FunctionTablet funct = (FunctionTablet) ta;
-        String[] fargs = funct.getArgs();
-        if (fargs.length != 0 && (tabletmap == null || tabletmap.size() != fargs.length)) {
-            System.err.println("Number of function arguments and tablets not matching or the arguments are malformed");
-            return Main.CODE_ERROR;
+        String[] fargs = funct.getInternalArgs();
+        if (tabletmap == null) {
+            tabletmap = new HashMap<>();//TODO move that stuff in special function
         }
+        //        if (fargs.length != 0 && (tabletmap == null || tabletmap.size() != fargs.length)) {
+        //            System.err.println("Number of function arguments and tablets not matching or the arguments are malformed");
+        //            return Main.CODE_ERROR;
+        //        }
         //Prepare arguments, determine the propagation type
         PropagationType propagationtype = PropagationType.Linear;
         String countName = null;
@@ -108,7 +110,9 @@ public class PropagateCommand implements Callable<Integer> {
         ExprEvaluator evaluator = new ExprEvaluator();
         Set<String> haserror = new HashSet<>();
         for (int i = 0; i < fargs.length; i++) {
-            String tabletName = tabletmap.get(fargs[i]);
+            String varFromInternal = funct.getVarFromInternal(fargs[i]);
+            String tabletmapping = tabletmap.get(varFromInternal);
+            String tabletName = tabletmapping == null ? varFromInternal : tabletmapping;
             DataTablet dt = (DataTablet) Main.data.getTablet(tabletName);//Check if existing
             if (dt == null) {
                 System.err.println("Invalid tablet '" + tabletName + "' for function argument '" + fargs[i] + "'.");
@@ -144,13 +148,16 @@ public class PropagateCommand implements Callable<Integer> {
         System.out.println("Value-Error pairs to be computed: " + iterationCount);
         for (int i = 0; i < iterationCount; i++) {
             for (int j = 0; j < nonstatargs.size(); j++) {
-                DataTablet dt = (DataTablet) Main.data.getTablet(tabletmap.get(nonstatargs.get(j)));
+                String varfrominternal = funct.getVarFromInternal(nonstatargs.get(j));
+                String tabletmapping = tabletmap.get(varfrominternal);
+                String tabletname = tabletmapping == null ? varfrominternal : tabletmapping;
+                DataTablet dt = (DataTablet) Main.data.getTablet(tabletname);
                 evaluator.defineVariable(nonstatargs.get(j), dt.getValue(i));
                 evaluator.defineVariable("D" + nonstatargs.get(j), dt.getError(i));//parse was used
             }
             boolean err = false;
             try {
-                IExpr resultExpr = evaluator.eval("N[" + funct.getFunction() + ", " + precision + "]");
+                IExpr resultExpr = evaluator.eval("N[" + funct.getFunctionInternal() + ", " + precision + "]");
                 results[i] = resultExpr;
             } catch (Exception e) {
                 err = true;

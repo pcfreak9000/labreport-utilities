@@ -57,8 +57,8 @@ public class PrintTabletCommand implements Callable<Integer> {
             printData(dt);
         } else if (tablet instanceof FunctionTablet) {
             FunctionTablet ft = (FunctionTablet) tablet;
-            System.out.println("Function '" + tabletName + "': " + ft.getFunction());
-            System.out.println("with args: " + Arrays.toString(ft.getArgs()));
+            System.out.println("Function '" + tabletName + "': " + ft.getFunctionInternal());
+            System.out.println("with args: " + Arrays.toString(ft.getVarArgs()));
         } else {
             System.out.println(tablet.toString());
         }
