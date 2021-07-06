@@ -3,7 +3,8 @@ package de.pcfreak9000.command;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 
-import org.matheclipse.core.eval.ExprEvaluator;
+import org.matheclipse.core.eval.EvalEngine;
+import org.matheclipse.core.expression.F;
 import org.matheclipse.core.interfaces.IExpr;
 
 import de.pcfreak9000.main.DataTablet;
@@ -67,9 +68,8 @@ public class SetCommand implements Callable<Integer> {
                 return Main.CODE_ERROR;
             }
             ft.setFunction(params[0]);
-            ExprEvaluator eval = new ExprEvaluator();
             for (String s : functionArgs) {
-                IExpr e = eval.eval(s);
+                IExpr e = F.eval(s);
                 if (e.isBuiltInSymbol()) {
                     System.err.println("Warning: function arg '" + s + "' is pre-defined symbol");
                 }
@@ -92,8 +92,8 @@ public class SetCommand implements Callable<Integer> {
                 return Main.CODE_ERROR;
             }
             DataTablet dt = (DataTablet) t;
-            dt.setValues(params);
-            dt.setErrors(errors);
+            dt.setValues(Arrays.stream(params).map((s) -> EvalEngine.get().parse(s)).toArray(IExpr[]::new));
+            dt.setErrors(Arrays.stream(errors).map((s) -> EvalEngine.get().parse(s)).toArray(IExpr[]::new));
             dt.setPreferredPropagation(preferredPropagation);
             dt.setDataUsage(dataUsage);
             System.out.println("Set the value(s) of tablet '" + tabletName + "' to '" + Arrays.toString(params)

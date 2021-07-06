@@ -27,6 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import org.matheclipse.core.eval.EvalEngine;
+import org.matheclipse.core.interfaces.IExpr;
+
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
@@ -109,8 +112,8 @@ public class SetFromFileCommand implements Callable<Integer> {
             return Main.CODE_ERROR;
         }
         DataTablet dt = (DataTablet) ta;
-        List<String> values = new ArrayList<>();
-        List<String> errors = new ArrayList<>();
+        List<IExpr> values = new ArrayList<>();
+        List<IExpr> errors = new ArrayList<>();
         int index = 0;
         int linesUsed = 0;
         if (verbose) {
@@ -132,14 +135,14 @@ public class SetFromFileCommand implements Callable<Integer> {
             if (verbose) {
                 System.out.println("v=" + value);
             }
-            values.add(value);
+            values.add(EvalEngine.get().parse(value));
             //error
             String error = errorColumn == -1 ? "0" : entry[errorColumn];
             error = fixNr(error);
             if (verbose) {
                 System.out.println("e=" + error);
             }
-            errors.add(error);
+            errors.add(EvalEngine.get().parse(error));
             //loop stuff
             linesUsed++;
             index++;
@@ -147,8 +150,8 @@ public class SetFromFileCommand implements Callable<Integer> {
                 break;
             }
         }
-        dt.setValues(values.toArray(String[]::new));
-        dt.setErrors(errors.toArray(String[]::new));
+        dt.setValues(values.toArray(IExpr[]::new));
+        dt.setErrors(errors.toArray(IExpr[]::new));
         if (dataUsageMasd) {
             dt.setDataUsage(DataUsage.MSD);
         } else {

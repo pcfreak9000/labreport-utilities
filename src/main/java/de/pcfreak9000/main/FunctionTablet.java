@@ -19,6 +19,7 @@ package de.pcfreak9000.main;
 import java.util.Objects;
 
 import org.matheclipse.core.eval.ExprEvaluator;
+import org.matheclipse.core.expression.F;
 import org.matheclipse.core.interfaces.IExpr;
 
 import de.pcfreak9000.main.DataTablet.DataUsage;
@@ -119,23 +120,31 @@ public class FunctionTablet implements Tablet {
         }
         String[] partials = getErrorPropPartials(type, evalVars);
         StringBuilder b = new StringBuilder();
+        ExprEvaluator eval = new ExprEvaluator();
+        IExpr ex = null;
         switch (type) {
         case Gaussian:
+            IExpr e = F.num(0);
             b.append("Sqrt(");
             for (int i = 0; i < evalVars.length; i++) {
+                e = e.add(eval.eval(partials[i]));
                 b.append(partials[i] + (i == evalVars.length - 1 ? ")" : " + "));
             }
+            ex = F.Sqrt(e);
             break;
         case Linear:
+            ex = F.num(0);
             for (int i = 0; i < evalVars.length; i++) {
+                ex = ex.add(eval.eval(partials[i]));
                 b.append(partials[i] + (i == evalVars.length - 1 ? "" : " + "));
             }
             break;
         default:
             throw new IllegalArgumentException(Objects.toString(type));
         }
+        return eval.eval(F.Simplify(ex));
         //return new ExprEvaluator().eval(b.toString());
-        return new ExprEvaluator().eval("simplify [" + b.toString() + "]");//FIXME Df being negative, String vs Expr problems, etc. See the current test . also this new ExprEval..., also fix too long expressions for the simplify...
+        //return new ExprEvaluator().eval("simplify [" + b.toString() + "]");//FIXME Df being negative, String vs Expr problems, etc. See the current test . also this new ExprEval..., also fix too long expressions for the simplify...
     }
     
     private String getPartial(String v) {

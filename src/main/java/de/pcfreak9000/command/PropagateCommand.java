@@ -17,11 +17,14 @@
 package de.pcfreak9000.command;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import org.matheclipse.core.eval.ExprEvaluator;
+import org.matheclipse.core.expression.F;
 import org.matheclipse.core.interfaces.IExpr;
 
 import de.pcfreak9000.main.DataTablet;
@@ -60,7 +63,7 @@ public class PropagateCommand implements Callable<Integer> {
     private Map<String, String> tabletmap;
     
     @Option(names = { "-n",
-            "--precision" }, defaultValue = "10", paramLabel = "<precision>", description = "floating point precision usedto calculate values")
+            "--precision" }, defaultValue = "6", paramLabel = "<precision>", description = "floating point precision usedto calculate values")
     private int precision;
     
     //TODO create "direct" mappings so constants without error dont need a dedicated tablet
@@ -103,6 +106,7 @@ public class PropagateCommand implements Callable<Integer> {
         DataTablet elementCountT = null;
         List<String> nonstatargs = new ArrayList<>();
         ExprEvaluator evaluator = new ExprEvaluator();
+        Set<String> haserror = new HashSet<>();
         for (int i = 0; i < fargs.length; i++) {
             String tabletName = tabletmap.get(fargs[i]);
             DataTablet dt = (DataTablet) Main.data.getTablet(tabletName);//Check if existing
@@ -120,8 +124,11 @@ public class PropagateCommand implements Callable<Integer> {
                 countName = fargs[i];
                 nonstatargs.add(fargs[i]);
             } else {
-                evaluator.defineVariable(fargs[i], evaluator.parse(dt.getValue(0)));
-                evaluator.defineVariable("D" + fargs[i], evaluator.parse(dt.getError(0)));
+                evaluator.defineVariable(fargs[i], dt.getValue(0));
+                evaluator.defineVariable("D" + fargs[i], dt.getError(0));//Parse was used...
+            }
+            if (dt.hasError()) {
+                haserror.add(fargs[i]);
             }
             propagationtype = propagationtype.compare(dt.getPreferredPropagation());
         }
@@ -129,33 +136,38 @@ public class PropagateCommand implements Callable<Integer> {
             propagationtype = this.forcePropagation;
         }
         //Finally calculate the stuff
-        String errorprop = funct.getErrorPropFunction(propagationtype);
+        String errorprop = funct.getErrorPropFunction(propagationtype, haserror.toArray(String[]::new));
         int iterationCount = (elementCountT == null ? 1 : elementCountT.getLength());
-        String[] results = new String[iterationCount];
-        String[] errors = new String[iterationCount];
+        IExpr[] results = new IExpr[iterationCount];
+        IExpr[] errors = new IExpr[iterationCount];
         System.out.println("Using error propagation: " + propagationtype);
         System.out.println("Value-Error pairs to be computed: " + iterationCount);
         for (int i = 0; i < iterationCount; i++) {
             for (int j = 0; j < nonstatargs.size(); j++) {
                 DataTablet dt = (DataTablet) Main.data.getTablet(tabletmap.get(nonstatargs.get(j)));
-                evaluator.defineVariable(nonstatargs.get(j), evaluator.parse(dt.getValue(i)));
-                evaluator.defineVariable("D" + nonstatargs.get(j), evaluator.parse(dt.getError(i)));
+                evaluator.defineVariable(nonstatargs.get(j), dt.getValue(i));
+                evaluator.defineVariable("D" + nonstatargs.get(j), dt.getError(i));//parse was used
             }
             boolean err = false;
             try {
                 IExpr resultExpr = evaluator.eval("N[" + funct.getFunction() + ", " + precision + "]");
-                IExpr errorExpr = evaluator.eval("N[" + errorprop + ", " + precision + "]");
-                results[i] = resultExpr.toString();
-                errors[i] = errorExpr.toString();
+                results[i] = resultExpr;
             } catch (Exception e) {
                 err = true;
-                results[i] = "Error";
-                errors[i] = "Error";
+                results[i] = F.eval("NaN");
+            }
+            try {
+                IExpr errorExpr = evaluator.eval("N[" + errorprop + ", " + precision + "]");
+                errors[i] = errorExpr;
+            } catch (Exception e) {
+                err = true;
+                errors[i] = F.eval("NaN");
+            }
+            if (err) {
+                System.out.println("Error. Some Values are invalid.");
             }
             if (printresult) {
                 System.out.println("f = " + results[i] + ", " + "Df = " + errors[i]);
-            } else if (err) {
-                System.out.println("Error. Values will be invalid.");
             }
         }
         //evaluator.clearVariables();//This is important, otherwise stuff might act weird -> local evaluator
@@ -163,10 +175,17 @@ public class PropagateCommand implements Callable<Integer> {
             resultTabletT.setValues(results);
             resultTabletT.setErrors(errors);
             resultTabletT.setPreferredPropagation(propagationtype);
-            resultTabletT.setDataUsage(DataUsage.Raw);//Raw should make sense... 
+            resultTabletT.setDataUsage(DataUsage.Raw);//TODO make this toggable 
             System.out.println("Wrote results into the tablet '" + resultTablet + "'.");
         }
         return Main.CODE_NORMAL;
+    }
+    
+    private IExpr getPr(IExpr in, int prec) {
+        return in;
+        //        IExpr e = EvalEngine.get().parse("N[]").apply(in, F.num(prec));
+        //        System.out.println(F.eval(e));
+        //        return F.eval(e);
     }
     
 }

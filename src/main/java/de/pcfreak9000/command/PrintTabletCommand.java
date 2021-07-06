@@ -69,8 +69,8 @@ public class PrintTabletCommand implements Callable<Integer> {
         format = format.toLowerCase();
         int len = raw ? dt.getLengthRaw() : dt.getLength();
         for (int i = 0; i < len; i++) {
-            String s = format.replace("%v", raw ? dt.getValueRaw(i) : dt.getValue(i));
-            s = s.replace("%e", raw ? dt.getErrorRaw(i) : dt.getError(i));
+            String s = format.replace("%v", raw ? dt.getValueRaw(i).toString() : dt.getValue(i).toString());
+            s = s.replace("%e", raw ? dt.getErrorRaw(i).toString() : dt.getError(i).toString());
             System.out.println(s);
         }
     }

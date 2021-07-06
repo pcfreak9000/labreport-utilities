@@ -16,6 +16,9 @@
  *******************************************************************************/
 package de.pcfreak9000.main;
 
+import org.matheclipse.core.expression.F;
+import org.matheclipse.core.interfaces.IExpr;
+
 import de.pcfreak9000.main.FunctionTablet.PropagationType;
 
 public class DataTablet implements Tablet {
@@ -24,17 +27,17 @@ public class DataTablet implements Tablet {
         Raw, MSD/* Mean and standard deviation */
     }
     
-    private String[] values;
-    private String[] errors;
+    private IExpr[] values;
+    private IExpr[] errors;
     
     private PropagationType preferredPropagation = PropagationType.Linear;
     private DataUsage dataUsage;
     
-    public void setValues(String... values) {
+    public void setValues(IExpr... values) {
         this.values = values;
     }
     
-    public void setErrors(String... errors) {
+    public void setErrors(IExpr... errors) {
         this.errors = errors;
     }
     
@@ -67,49 +70,38 @@ public class DataTablet implements Tablet {
         this.dataUsage = dataUsage;
     }
     
-    private String createStandardDeviationEvalString() {
-        StringBuilder b = new StringBuilder();
-        //b.append("1/Sqrt(" + values.length + ") * ");
-        b.append("StandardDeviation({");
+    private IExpr createStandardDeviationEvalString() {
+        IExpr e = F.eval("{}");
         for (int i = 0; i < values.length; i++) {
-            b.append(values[i]);
-            if (i < values.length - 1) {
-                b.append(", ");
-            }
+            e = F.eval(F.Append(e, values[i]));
         }
-        b.append("})");
-        return b.toString();
+        return F.eval(F.StandardDeviation(e));
     }
     
-    private String createMeanEvalString() {
-        StringBuilder b = new StringBuilder();
-        b.append("Mean({");
+    private IExpr createMeanEvalString() {
+        IExpr e = F.eval("{}");
         for (int i = 0; i < values.length; i++) {
-            b.append(values[i]);
-            if (i < values.length - 1) {
-                b.append(", ");
-            }
+            e = F.eval(F.Append(e, values[i]));
         }
-        b.append("})");
-        return b.toString();
+        return F.eval(F.Mean(e));
     }
     
-    public String getError(int index) {
+    public IExpr getError(int index) {
         if (errors != null) {
             if (getDataUsage() == DataUsage.MSD) {
-                return Main.evaluator().eval(createStandardDeviationEvalString()).toString();
+                return createStandardDeviationEvalString();
             } else {
                 return errors.length == 1 ? errors[0] : errors[index];
             }
         } else {
-            return "0";
+            return null;
         }
     }
     
-    public String getValue(int index) {
+    public IExpr getValue(int index) {
         if (values != null) {
             if (getDataUsage() == DataUsage.MSD) {
-                return Main.evaluator().eval(createMeanEvalString()).toString();
+                return createMeanEvalString();
             } else {
                 return values[index];
             }
@@ -118,18 +110,29 @@ public class DataTablet implements Tablet {
         }
     }
     
-    public String getErrorRaw(int index) {
+    public IExpr getErrorRaw(int index) {
         if (errors != null) {
             return errors[index];
         }
-        return "0";
+        return null;
     }
     
-    public String getValueRaw(int index) {
+    public IExpr getValueRaw(int index) {
         if (values != null) {
             return values[index];
         }
-        return "0";
+        return null;
+    }
+    
+    public boolean hasError() {
+        if (errors != null) {
+            for (IExpr e : errors) {
+                if (!F.eval(F.Equal(F.num(0), e)).isTrue()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
     
     private String stringRepresentation() {
