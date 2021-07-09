@@ -61,6 +61,7 @@ public class SetCommand implements Callable<Integer> {
                 System.err.println("Only one parameter is accepted in function-mode");
                 return Main.CODE_ERROR;
             }
+            params[0] = params[0].toLowerCase();
             ft.setFunction(params[0]);
             System.out.println("Set the function of tablet '" + tabletName + "' to '" + ft.getFunctionOriginal()
                     + "' and the arguments of the function are " + Arrays.toString(ft.getVarArgs()));

@@ -71,9 +71,11 @@ public class FunctionTablet implements Tablet {
     }
     
     public void setFunction(String funct) {
+        this.varMap.clear();//if the tablet is reused, this sucks though (a bit) TODO clear tablets on 'exit'? clear command? create new tablets instead of filling old ones?
         this.varfunc = funct;
         IExpr e = F.eval(funct);
         Set<String> vars = new HashSet<>();
+        //TODO the following isn't prefix-free
         e = e.replace((p) -> p.isAtom() && !p.isBuiltInSymbol() && !p.isNumber(), (in) -> {
             String repl = "\"variable" + in + "\"";
             IExpr replexpr = F.eval(repl);
@@ -98,10 +100,6 @@ public class FunctionTablet implements Tablet {
     
     public String getInternalFromVar(String var) {
         return varMap.get(var);
-    }
-    
-    public void setArgs(String... args) {
-        // this.args = args;
     }
     
     public String getErrorPropFunction(PropagationType type, String... evalVars) {
