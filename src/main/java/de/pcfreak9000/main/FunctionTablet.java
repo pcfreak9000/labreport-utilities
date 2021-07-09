@@ -75,9 +75,8 @@ public class FunctionTablet implements Tablet {
         this.varfunc = funct;
         IExpr e = F.eval(funct);
         Set<String> vars = new HashSet<>();
-        //TODO the following isn't prefix-free
         e = e.replace((p) -> p.isAtom() && !p.isBuiltInSymbol() && !p.isNumber(), (in) -> {
-            String repl = "\"variable" + in + "\"";
+            String repl = "\"variableav54" + in + "variableav54\"";//Coming from both sides with that random string should make it prefix-free
             IExpr replexpr = F.eval(repl);
             vars.add(replexpr.toString());
             varMap.put(in.toString(), replexpr.toString());
