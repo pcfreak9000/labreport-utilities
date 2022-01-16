@@ -27,8 +27,8 @@ public class DataTablet implements Tablet {
         Raw, MSD/* Mean and standard deviation */
     }
     
-    private IExpr[] values;
-    private IExpr[] errors;
+    public IExpr[] values;
+    public IExpr[] errors;//TODO tmp public
     
     private PropagationType preferredPropagation = PropagationType.Linear;
     private DataUsage dataUsage;
@@ -149,5 +149,6 @@ public class DataTablet implements Tablet {
     public String toString() {
         return stringRepresentation();
     }
+    
     
 }

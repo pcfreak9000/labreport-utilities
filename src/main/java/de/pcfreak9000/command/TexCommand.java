@@ -78,11 +78,16 @@ public class TexCommand implements Callable<Integer> {
                     variables[i] = function.getInternalFromVar(variables[i]);
                 }
             }
+            String prop = function.getErrorPropFunction(propType, variables);
+            String stt = prop;
+            for(String in : function.getInternalArgs()) {
+                stt = stt.replace(in, function.getVarFromInternal(in));
+            }
             System.out.println("TeXForm of the error propagation of the function '" + function.getFunctionOriginal()
                     + "' with respect to the variables " + Arrays.toString(function.getVarArgs()) + ":");
+            System.out.println(stt);//TODO make this better
             if (split == 0) {
                 ExprEvaluator eval = new ExprEvaluator();
-                String prop = function.getErrorPropFunction(propType, variables);
                 String texString = eval.eval("TeXForm[" + prop + "]").toString();
                 texString = prepareDeltaTexString(texString, variables);
                 texString = prepareRawTexString(texString, function);

@@ -80,13 +80,21 @@ public class SetCommand implements Callable<Integer> {
                 return Main.CODE_ERROR;
             }
             DataTablet dt = (DataTablet) t;
-            dt.setValues(Arrays.stream(params).map((s) -> EvalEngine.get().parse(s)).toArray(IExpr[]::new));
-            dt.setErrors(Arrays.stream(errors).map((s) -> EvalEngine.get().parse(s)).toArray(IExpr[]::new));
+            dt.setValues(Arrays.stream(params).map((s) -> EvalEngine.get().parse(fixNr(s))).toArray(IExpr[]::new));
+            dt.setErrors(Arrays.stream(errors).map((s) -> EvalEngine.get().parse(fixNr(s))).toArray(IExpr[]::new));
             dt.setPreferredPropagation(preferredPropagation);
             dt.setDataUsage(dataUsage);
-            System.out.println("Set the value(s) of tablet '" + tabletName + "' to '" + Arrays.toString(params)
-                    + "' and the error(s) to '" + Arrays.toString(errors) + "'.");
+            System.out.println("Set the value(s) of tablet '" + tabletName + "' to '" + Arrays.toString(dt.values)
+                    + "' and the error(s) to '" + Arrays.toString(dt.errors) + "'.");
         }
         return Main.CODE_NORMAL;
+    }
+    private String fixNr(String in) {
+        in = in.replace(',', '.');
+        if (in.contains("E")) {
+            String[] ar = in.split("E");
+            in = "((" + ar[0] + ")*10^(" + Main.evaluator().eval(ar[1]).toString() + "))";
+        }
+        return in;
     }
 }
