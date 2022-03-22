@@ -45,6 +45,9 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
+//TODO make it possible to truncate the output in the print function
+//TODO allow different number formats as output
+
 @Command(name = "setf", description = "Sets the content of a data tablet from a csv-file.")
 public class SetFromFileCommand implements Callable<Integer> {
     
@@ -86,7 +89,7 @@ public class SetFromFileCommand implements Callable<Integer> {
     private boolean forceReadFile;
     
     @Option(names = "-sk")
-    private int[] skiplines;
+    private int[] skiplines; //FIXME nullpointer, make some defaults
     
     @Override
     public Integer call() {
