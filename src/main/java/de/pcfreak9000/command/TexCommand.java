@@ -68,8 +68,10 @@ public class TexCommand implements Callable<Integer> {
         }
         FunctionTablet function = (FunctionTablet) ta;
         if (propType == null) {
-            System.out.println("TeXForm of the function '" + function.getFunctionOriginal() + "':\n " + prepareRawTexString(
-                    Main.evaluator().eval("TeXForm[" + function.getFunctionInternal() + "]").toString(), function));
+            System.out.println("TeXForm of the function '" + function.getFunctionOriginal() + "':\n "
+                    + prepareRawTexString(
+                            Main.evaluator().eval("TeXForm[" + function.getFunctionInternal() + "]").toString(),
+                            function));
         } else {
             if (variables == null) {
                 variables = function.getInternalArgs();
@@ -80,15 +82,15 @@ public class TexCommand implements Callable<Integer> {
             }
             String prop = function.getErrorPropFunction(propType, variables);
             String stt = prop;
-            for(String in : function.getInternalArgs()) {
+            for (String in : function.getInternalArgs()) {
                 stt = stt.replace(in, function.getVarFromInternal(in));
             }
             System.out.println("TeXForm of the error propagation of the function '" + function.getFunctionOriginal()
                     + "' with respect to the variables " + Arrays.toString(function.getVarArgs()) + ":");
             System.out.println(stt);//TODO make this better
             if (split == 0) {
-                ExprEvaluator eval = new ExprEvaluator();
-                String texString = eval.eval("TeXForm[" + prop + "]").toString();
+                ExprEvaluator eval = Main.getNewEval();
+                String texString = eval.eval("TeXForm[" + prop + "]").toString().replaceAll(prop, stt);
                 texString = prepareDeltaTexString(texString, variables);
                 texString = prepareRawTexString(texString, function);
                 System.out.println(" " + texString);
@@ -112,6 +114,7 @@ public class TexCommand implements Callable<Integer> {
     
     private String prepareRawTexString(String in, FunctionTablet ft) {
         in = in.replace("^{1}", "");//The fuck
+        in = in.replace("\\left(", "(").replace("\\right)", ")").replace("(", "\\left(").replace(")", "\\right)");
         for (String var : ft.getVarArgs()) {
             String texRepl = varMap == null ? null : varMap.get(var);
             if (texRepl == null) {
@@ -122,6 +125,8 @@ public class TexCommand implements Callable<Integer> {
                 in = in.replace(internal, texRepl);
             }
         }
+        //TODO remove unnecessary () in \sqrt{}
+        //TODO somehow turn | into \left| and \right|
         return in;
     }
     
@@ -137,7 +142,7 @@ public class TexCommand implements Callable<Integer> {
         default:
             throw new IllegalArgumentException(Objects.toString(type));
         }
-        ExprEvaluator eval = new ExprEvaluator();
+        ExprEvaluator eval = Main.getNewEval();
         for (int i = 1; i < res.length; i++) {
             String symb = "{" + TEX_PARTIAL_ERROR_PROP_SYMBOL + "}_{" + i + "}";
             String groupTex = eval.eval("TeXForm[" + groups[i - 1] + "]").toString();

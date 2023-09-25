@@ -107,7 +107,7 @@ public class PropagateCommand implements Callable<Integer> {
         String countName = null;
         DataTablet elementCountT = null;
         List<String> nonstatargs = new ArrayList<>();
-        ExprEvaluator evaluator = new ExprEvaluator();
+        ExprEvaluator evaluator = Main.getNewEval();
         Set<String> haserror = new HashSet<>();
         for (int i = 0; i < fargs.length; i++) {
             String varFromInternal = funct.getVarFromInternal(fargs[i]);

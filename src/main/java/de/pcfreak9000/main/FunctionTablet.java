@@ -109,7 +109,7 @@ public class FunctionTablet implements Tablet {
         int groupCount = (int) Math.ceil(evalVars.length / (double) groupSize);
         String[] groups = new String[groupCount];
         String[] partials = getErrorPropPartials(type, evalVars);
-        ExprEvaluator eval = new ExprEvaluator();
+        ExprEvaluator eval = Main.getNewEval();
         for (int i = 0; i < groups.length; i++) {
             int baseIndex = i * groupSize;
             StringBuilder builder = new StringBuilder();
@@ -149,7 +149,7 @@ public class FunctionTablet implements Tablet {
         }
         String[] partials = getErrorPropPartials(type, evalVars);
         StringBuilder b = new StringBuilder();
-        ExprEvaluator eval = new ExprEvaluator();
+        ExprEvaluator eval = Main.getNewEval();
         IExpr ex = null;
         switch (type) {
         case Gaussian:
@@ -171,8 +171,10 @@ public class FunctionTablet implements Tablet {
         default:
             throw new IllegalArgumentException(Objects.toString(type));
         }
-        return eval.eval(F.Simplify(ex));
+        //eval.getEvalEngine().getAssumptions().addAssumption(F.ast(eval.eval("\"variableav54r0variableav54\">0"))); //doesnt work
+        return eval.eval(F.FullSimplify(ex));//TODO assumptions...
         //FIXME fix too long(?) expressions for the simplify...
+        //XXX Why not FullSimplify?
     }
     
     private String getPartial(String v) {

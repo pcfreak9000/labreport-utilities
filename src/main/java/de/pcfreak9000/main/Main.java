@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,8 +31,11 @@ import org.matheclipse.core.eval.ExprEvaluator;
 
 import de.pcfreak9000.command.BaseCommand;
 import picocli.CommandLine;
+
 //FIXME functions with a - in front somehow cause problems when parsing, e.g. set -a -p=linear rr "(-1)*sqrt(R^2-R0^2*(sin(l*pi/180))^2)+R0*cos(l*pi/180)" (-1) works, - doesnt
 public class Main {
+    
+    public static final boolean DEBUG = System.getenv("labreport-utilities-debug") != null;
     
     public static final int CODE_NORMAL = 0;
     public static final int CODE_EXIT = 4;
@@ -41,14 +46,23 @@ public class Main {
     private static CommandLine commandline;
     public static final Tablets data = new Tablets();
     
-    public static ExprEvaluator ev2 = new ExprEvaluator();
+    //public static ExprEvaluator ev2 = new ExprEvaluator();
     
     public static ExprEvaluator evaluator() {
         if (EXPRESSION_EVALUATOR == null) {
             System.out.println("Initializing...");
-            EXPRESSION_EVALUATOR = new ExprEvaluator();
+            EXPRESSION_EVALUATOR = getNewEval();
         }
         return EXPRESSION_EVALUATOR;
+    }
+    
+    public static ExprEvaluator getNewEval() {
+        ExprEvaluator eval = new ExprEvaluator();
+        if (!DEBUG) {
+            eval.getEvalEngine().setErrorPrintStream(new PrintStream(OutputStream.nullOutputStream()));
+            eval.getEvalEngine().setOutPrintStream(new PrintStream(OutputStream.nullOutputStream()));
+        }
+        return eval;
     }
     
     public static void main(String[] args) {
