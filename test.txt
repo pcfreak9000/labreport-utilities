@@ -1,3 +1,33 @@
+set -a -p=linear r "R0*V0*sin(l*pi/180)/(V0*sin(l*pi/180)+v)" 
+tex r v0="V_0" r0="R_0" r=R
+tex r -v=l -v=v -p=linear v0="V_0" r0="R_0" r=R
+
+set -a -p=linear rr "sqrt(R^2-R0^2*(sin(l*pi/180))^2)+R0*cos(l*pi/180)"
+tex rr v0="V_0" r0="R_0" r=R
+tex rr -v=l -v=r -p=linear v0="V_0" r0="R_0" r=R
+
+set -a -p=linear rr "(-1)*sqrt(R^2-R0^2*(sin(l*pi/180))^2)+R0*cos(l*pi/180)"
+tex rr v0="V_0" r0="R_0" r=R
+tex rr -v=l -v=r -p=linear v0="V_0" r0="R_0" r=R
+
+set -a -p=linear rrr "r*cos((l+270)*pi/180)"
+tex rrr 
+tex rrr -v=l -v=r -p=linear
+
+set -a -p=linear rrrr "r*sin((l+270)*pi/180)+R0"
+tex rrrr r0="R_0"
+tex rrrr -v=l -v=r -p=linear r0="R_0"
+exit
+
+set -a -p=linear v "v+V0*sin(l*pi/180)"
+tex v -v=l -v=v -p=linear v0="V_0"
+tex v v0="V_0"
+
+set -a -p=linear r "R0*sin(l*pi/180)"
+tex -v=l -p=linear r r0="R_0"
+tex r r0="R_0"
+exit
+
 %Dies ist problematisch aufgrund von Genauigkeitsdingen, FIXME
 set k "(-t/ln(1-(a/u)))/e" -a=t;a;u;e
 set a "4.25/5" -e="1/10"

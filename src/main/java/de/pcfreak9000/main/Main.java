@@ -29,7 +29,7 @@ import org.matheclipse.core.eval.ExprEvaluator;
 
 import de.pcfreak9000.command.BaseCommand;
 import picocli.CommandLine;
-
+//FIXME functions with a - in front somehow cause problems when parsing, e.g. set -a -p=linear rr "(-1)*sqrt(R^2-R0^2*(sin(l*pi/180))^2)+R0*cos(l*pi/180)" (-1) works, - doesnt
 public class Main {
     
     public static final int CODE_NORMAL = 0;
